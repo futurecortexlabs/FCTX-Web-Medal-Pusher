@@ -47,6 +47,7 @@ html, body {
 }
 
 /* TOP HUD */
+/* SLIM INTEGRATED TOP HUD */
 #top-hud {
   position: absolute;
   top: 0;
@@ -54,24 +55,87 @@ html, body {
   width: 100%;
   z-index: 10;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(6, 8, 20, 0.95) 0%, rgba(6, 8, 20, 0.7) 80%, transparent 100%);
+  gap: 8px;
+}
+
+.hud-left, .hud-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.hud-center {
+  pointer-events: auto;
+}
+
+.stat-pill {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 12px;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(5, 7, 18, 0.9) 0%, rgba(5, 7, 18, 0.5) 75%, transparent 100%);
+  backdrop-filter: blur(4px);
+}
+
+.pill-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  color: #7dd3fc;
+  letter-spacing: 0.5px;
+}
+
+.pill-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.pill-val small {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.orb-pill {
+  padding: 3px 8px;
+}
+
+/* ORB INDICATORS */
+.orb-indicators {
+  display: flex;
+  gap: 4px;
+  margin: 1px 0;
+}
+
+.orb-slot {
+  font-size: 13px;
+  color: #334155;
+  transition: all 0.3s ease;
+  text-shadow: none;
+}
+
+.orb-slot.active {
+  color: #a855f7;
+  text-shadow: 0 0 8px #c084fc, 0 0 16px #e879f9;
+  transform: scale(1.15);
 }
 
 .jp-panel {
-  background: radial-gradient(ellipse at center, rgba(40, 25, 5, 0.95) 0%, rgba(15, 10, 2, 0.9) 100%);
-  border: 2px solid var(--gold-primary);
-  border-radius: 12px;
-  padding: 6px 20px;
+  background: radial-gradient(ellipse at center, rgba(45, 25, 5, 0.95) 0%, rgba(15, 10, 2, 0.9) 100%);
+  border: 1.5px solid var(--gold-primary);
+  border-radius: 10px;
+  padding: 3px 16px;
   text-align: center;
-  box-shadow: 0 0 18px rgba(255, 215, 0, 0.45), inset 0 0 12px rgba(255, 170, 0, 0.3);
-  pointer-events: auto;
-  max-width: 480px;
-  width: 90%;
-  margin-bottom: 6px;
+  box-shadow: 0 0 14px rgba(255, 215, 0, 0.4);
   position: relative;
   overflow: hidden;
 }
@@ -95,123 +159,60 @@ html, body {
 
 .jp-title {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   color: #fff2a3;
-  text-shadow: 0 0 8px #ffaa00;
+  text-shadow: 0 0 6px #ffaa00;
 }
 
 .jp-counter-box {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .currency-symbol {
-  font-size: 20px;
+  font-size: 15px;
 }
 
 .digital-odometer {
   font-family: 'Orbitron', monospace;
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 900;
   color: #fff;
-  letter-spacing: 3px;
-  text-shadow: 0 0 12px #ffdd00, 0 0 24px #ff8800;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px #ffdd00, 0 0 20px #ff8800;
 }
 
-.jp-unit {
-  font-family: 'Orbitron', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--gold-secondary);
+.fever-pill {
+  min-width: 105px;
+  padding: 3px 8px;
 }
 
-.jp-sub {
-  font-size: 10px;
-  color: #e0d0aa;
-  opacity: 0.9;
-}
-
-.top-stats-row {
+.fever-top-row {
   display: flex;
-  gap: 8px;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
-  max-width: 580px;
+  font-size: 8px;
 }
 
-.stat-box {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 8px;
-  padding: 5px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(6px);
-  pointer-events: auto;
-}
-
-.stat-label {
+.fever-timer-label {
   font-family: 'Orbitron', sans-serif;
-  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 1px;
-  color: #9bb0dc;
+  color: #f87171;
+  font-size: 8px;
 }
 
-.stat-value {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 18px;
-  font-weight: 900;
-  color: #fff;
-}
-
-.stat-value small {
-  font-size: 11px;
-  color: #aaa;
-  font-family: 'M PLUS Rounded 1c', sans-serif;
-}
-
-.stat-sub {
-  font-size: 9px;
-  color: #8c9eb5;
-}
-
-/* ORB INDICATORS */
-.orb-indicators {
-  display: flex;
-  gap: 6px;
-  margin: 2px 0;
-}
-
-.orb-slot {
-  font-size: 16px;
-  color: #334155;
-  transition: all 0.3s ease;
-  text-shadow: none;
-}
-
-.orb-slot.active {
-  color: #a855f7;
-  text-shadow: 0 0 10px #c084fc, 0 0 20px #e879f9;
-  transform: scale(1.2);
-}
-
-/* FEVER BOX */
 .fever-bar-container {
   width: 100%;
-  height: 14px;
+  height: 8px;
   background: #111827;
-  border-radius: 7px;
+  border-radius: 4px;
   overflow: hidden;
   position: relative;
-  margin: 3px 0;
+  margin-top: 2px;
   border: 1px solid #374151;
 }
 
@@ -219,25 +220,11 @@ html, body {
   height: 100%;
   background: linear-gradient(90deg, #f59e0b, #ef4444);
   transition: width 0.3s ease;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
 }
 
 .fever-count-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: 'Orbitron', sans-serif;
-  font-size: 9px;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 1px 2px #000;
-}
-
-.fever-sub {
-  font-size: 9px;
-  color: #f87171;
-  font-weight: 700;
+  display: none;
 }
 
 .fever-active #fever-bar {
@@ -251,32 +238,32 @@ html, body {
   100% { background-position: 100% 50%; }
 }
 
-/* ROULETTE HUD */
+/* COMPACT FLOATING ROULETTE HUD (ANCHORED TO TOP-LEFT) */
 #roulette-container {
   position: absolute;
-  top: 105px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 56px;
+  left: 12px;
   z-index: 9;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   pointer-events: none;
 }
 
 .stock-container {
   background: rgba(10, 15, 30, 0.85);
   border: 1px solid #38bdf8;
-  border-radius: 12px;
-  padding: 3px 10px;
+  border-radius: 8px;
+  padding: 2px 8px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 3px;
+  backdrop-filter: blur(4px);
 }
 
 .stock-label {
-  font-size: 9px;
+  font-size: 8px;
   font-family: 'Orbitron', sans-serif;
   font-weight: 800;
   color: #38bdf8;
@@ -284,12 +271,12 @@ html, body {
 
 .stock-lamps {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 .stock-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #1e293b;
   border: 1px solid #475569;
@@ -299,74 +286,74 @@ html, body {
 .stock-dot.active {
   background: #38bdf8;
   border-color: #e0f2fe;
-  box-shadow: 0 0 8px #38bdf8;
-  transform: scale(1.15);
+  box-shadow: 0 0 6px #38bdf8;
+  transform: scale(1.1);
 }
 
 .roulette-frame {
   background: radial-gradient(circle, #251206 0%, #0c0803 100%);
-  border: 2px solid #f59e0b;
-  border-radius: 14px;
-  padding: 6px 14px;
+  border: 1.5px solid #f59e0b;
+  border-radius: 10px;
+  padding: 4px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  backdrop-filter: blur(4px);
 }
 
 .reels-window {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   background: #000;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 3px 6px;
+  border-radius: 6px;
   border: 1px solid #78350f;
 }
 
 .reel {
-  width: 38px;
-  height: 44px;
+  width: 28px;
+  height: 32px;
   background: linear-gradient(180deg, #1f2937 0%, #111827 50%, #1f2937 100%);
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   border: 1px solid #4b5563;
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.8);
 }
 
 .reel-symbol {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 900;
-  transition: transform 0.1s linear;
 }
 
 .roulette-msg {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 800;
   color: #fef08a;
-  margin-top: 3px;
-  text-shadow: 0 0 4px #000;
+  margin-top: 2px;
+  text-shadow: 0 0 3px #000;
 }
 
-/* MULTIPLIER GATE BADGE */
+/* MULTIPLIER GATE BADGE (ANCHORED TOP-RIGHT) */
 .gate-badge {
   position: absolute;
-  top: 190px;
-  right: 14px;
+  top: 56px;
+  right: 12px;
   background: rgba(16, 185, 129, 0.85);
   border: 1px solid #a7f3d0;
-  border-radius: 20px;
-  padding: 4px 10px;
+  border-radius: 14px;
+  padding: 3px 8px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-family: 'Orbitron', sans-serif;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
   color: #fff;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
   z-index: 9;
   pointer-events: none;
 }

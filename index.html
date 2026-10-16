@@ -14,52 +14,52 @@
     <!-- 3D Viewport Canvas -->
     <canvas id="game-canvas"></canvas>
 
-    <!-- Top Jackpot & Status HUD -->
+    <!-- Slim Integrated Top HUD -->
     <header id="top-hud">
-      <div class="hud-panel jp-panel">
-        <div class="jp-title">★ GRAND JACKPOT ★</div>
-        <div class="jp-counter-box">
-          <span class="currency-symbol">🪙</span>
-          <span id="jp-counter" class="digital-odometer">0300.0</span>
-          <span class="jp-unit">MEDALS</span>
+      <!-- Left: Credit & Balls -->
+      <div class="hud-left">
+        <div class="stat-pill credit-pill">
+          <span class="pill-label">CREDIT</span>
+          <span class="pill-val"><span id="credit-count">200</span><small>枚</small></span>
         </div>
-        <div class="jp-sub">サイド没収がリアルタイム加算 (+0.5/枚)</div>
-      </div>
-
-      <div class="top-stats-row">
-        <!-- Credit Box -->
-        <div class="stat-box credit-box">
-          <div class="stat-label">CREDIT</div>
-          <div class="stat-value"><span id="credit-count">200</span> <small>枚</small></div>
-        </div>
-
-        <!-- Orb Challenge Box -->
-        <div class="stat-box orb-box">
-          <div class="stat-label">JP BALLS</div>
+        <div class="stat-pill orb-pill">
+          <span class="pill-label">BALLS</span>
           <div class="orb-indicators" id="orb-indicators">
             <span class="orb-slot slot-0">●</span>
             <span class="orb-slot slot-1">●</span>
             <span class="orb-slot slot-2">●</span>
           </div>
-          <div class="stat-sub">3個でクルーン突入</div>
         </div>
+      </div>
 
-        <!-- Fever Gauge Box -->
-        <div class="stat-box fever-box" id="fever-box">
-          <div class="stat-label">FEVER GAUGE</div>
+      <!-- Center: Grand Jackpot -->
+      <div class="hud-center jp-panel">
+        <div class="jp-title">★ GRAND JACKPOT ★</div>
+        <div class="jp-counter-box">
+          <span class="currency-symbol">🪙</span>
+          <span id="jp-counter" class="digital-odometer">0300.0</span>
+        </div>
+      </div>
+
+      <!-- Right: Fever Gauge -->
+      <div class="hud-right">
+        <div class="stat-pill fever-pill" id="fever-box">
+          <div class="fever-top-row">
+            <span class="pill-label">FEVER</span>
+            <span id="fever-timer-text" class="fever-timer-label">0/10</span>
+          </div>
           <div class="fever-bar-container">
             <div id="fever-bar" class="fever-bar" style="width: 0%;"></div>
-            <span id="fever-count-text" class="fever-count-text">0 / 10</span>
+            <span id="fever-count-text" class="fever-count-text"></span>
           </div>
-          <div id="fever-timer-text" class="fever-sub">ハズレ蓄積で全防御!</div>
         </div>
       </div>
     </header>
 
-    <!-- Digital Roulette / Slot UI (Center-Top Overlay) -->
+    <!-- Compact Floating Slot & Chucker Stock (Anchored to Top-Left, freeing center view!) -->
     <div id="roulette-container">
       <div class="stock-container">
-        <div class="stock-label">CHUCKER STOCK</div>
+        <span class="stock-label">STOCK</span>
         <div id="stock-lamps" class="stock-lamps">
           <span class="stock-dot"></span><span class="stock-dot"></span>
           <span class="stock-dot"></span><span class="stock-dot"></span>

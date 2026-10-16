@@ -161,6 +161,7 @@ export class GameManager {
 
   /**
    * Main Drop Coin Action
+   * Drops directly onto the moving upper pusher deck!
    */
   public dropCoin() {
     if (this.isTiltLocked) return;
@@ -171,7 +172,7 @@ export class GameManager {
 
     this.credits--;
     this.sound.playCoinDrop();
-    this.physics.spawnCoin(this.shooterX, 2.5, -4.6);
+    this.physics.spawnCoin(this.shooterX, 1.35, -1.45);
     this.updateHUD();
   }
 
@@ -180,10 +181,11 @@ export class GameManager {
   }
 
   public setShooterX(normX: number) {
-    // normX is -1.0 to 1.0 from UI swipe
-    this.shooterX = normX * 1.35;
+    // normX is -1.0 to 1.0 from UI swipe (width of pusher ~ 2.4m)
+    this.shooterX = normX * 1.15;
     const pct = ((normX + 1.0) / 2.0) * 100;
     this.elAimNeedle.style.left = `${pct}%`;
+    this.renderer.updateShooterPosition(this.shooterX);
   }
 
   /**
@@ -275,12 +277,12 @@ export class GameManager {
         origin: { y: 0.5 },
       });
 
-      // Spawn massive waterfall of medals over 4 seconds
+      // Spawn massive waterfall of medals directly onto moving deck
       let spawned = 0;
       const waterfallInterval = setInterval(() => {
         for (let i = 0; i < 4; i++) {
-          const rx = (Math.random() - 0.5) * 2.4;
-          this.physics.spawnCoin(rx, 2.8, -4.4, true);
+          const rx = (Math.random() - 0.5) * 2.0;
+          this.physics.spawnCoin(rx, 1.4, -1.45, true);
           spawned++;
         }
         if (spawned >= 60) {
@@ -293,15 +295,15 @@ export class GameManager {
     } else if (type === '100_tower') {
       this.elCrounStatus.textContent = '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!!';
       this.credits += 100;
-      this.physics.spawnMedalTower(0, -2.5);
+      this.physics.spawnMedalTower(0, -1.35);
       this.sound.playTowerCollapse();
       confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
     } else {
       this.elCrounStatus.textContent = '🟦 50枚払い出し獲得!!';
       this.credits += 50;
       for (let i = 0; i < 15; i++) {
-        const rx = (Math.random() - 0.5) * 2.0;
-        this.physics.spawnCoin(rx, 2.5, -4.0, true);
+        const rx = (Math.random() - 0.5) * 1.8;
+        this.physics.spawnCoin(rx, 1.35, -1.45, true);
       }
     }
 
@@ -363,21 +365,21 @@ export class GameManager {
       this.sound.playRouletteWin();
       this.credits += 15;
       for (let i = 0; i < 6; i++) {
-        this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 2.5, -4.2, true);
+        this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 1.35, -1.45, true);
       }
     } else if (roll < 0.75) {
       // 🏰 タワー召喚マス (Spec Page 1: "ルーレットのタワー召喚マス")
       this.setReelSymbols('🏰', '🏰', '🏰');
       this.elRouletteMsg.textContent = '🏰 タワー召喚マス当選！';
       this.sound.playTowerCollapse();
-      this.physics.spawnMedalTower(0, -2.5);
+      this.physics.spawnMedalTower(0, -1.35);
       this.showAlert('🏰 TOWER SUMMON!', '中央に50枚メダルタワーを召喚！');
     } else if (roll < 0.90) {
       // 🔮 カラーボール出現 (15%)
       this.setReelSymbols('🔮', '🔮', '🔮');
       this.elRouletteMsg.textContent = '🔮 カラーボール落下！';
       this.sound.playOrbDrop();
-      this.physics.spawnBall(0, 2.8, -4.5);
+      this.physics.spawnBall(0, 1.45, -1.4);
     } else {
       // 🔥 JPチャレンジ突入 (10%)
       this.setReelSymbols('🔥', '🔥', '🔥');
@@ -471,7 +473,9 @@ export class GameManager {
     // Fever Bar
     const feverPct = this.isFeverActive ? 100 : Math.min((this.feverCount / 10) * 100, 100);
     this.elFeverBar.style.width = `${feverPct}%`;
-    this.elFeverCountText.textContent = this.isFeverActive ? 'ACTIVE' : `${this.feverCount} / 10`;
+    if (!this.isFeverActive) {
+      this.elFeverTimerText.textContent = `${this.feverCount}/10`;
+    }
 
     // Stock Dots
     this.elStockDots.forEach((dot, idx) => {

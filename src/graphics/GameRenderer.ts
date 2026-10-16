@@ -22,11 +22,12 @@ export class GameRenderer {
   private gateMesh!: THREE.Group;
   private chuckerMesh!: THREE.Mesh;
   private crounGroup!: THREE.Group;
+  private shooterGuideMesh!: THREE.Mesh;
 
-  // Camera animation
-  private targetCameraPos = new THREE.Vector3(0, 5.2, 5.8);
-  private targetCameraLookAt = new THREE.Vector3(0, 0.4, -0.6);
-  private currentCameraLookAt = new THREE.Vector3(0, 0.4, -0.6);
+  // Camera animation: positioned higher and closer for a clear arcade perspective
+  private targetCameraPos = new THREE.Vector3(0, 3.8, 2.5);
+  private targetCameraLookAt = new THREE.Vector3(0, 0.25, -0.6);
+  private currentCameraLookAt = new THREE.Vector3(0, 0.25, -0.6);
   public isCrounView = false;
   private shakeOffset = new THREE.Vector3();
   private shakeDuration = 0;
@@ -44,7 +45,7 @@ export class GameRenderer {
     this.scene.fog = new THREE.FogExp2(0x060814, 0.04);
 
     this.camera = new THREE.PerspectiveCamera(
-      48,
+      46,
       window.innerWidth / window.innerHeight,
       0.1,
       50
@@ -69,6 +70,7 @@ export class GameRenderer {
     this.setupPusherAndShields();
     this.setup2xGate();
     this.setupChucker();
+    this.setupShooterGuide();
     this.setupCrounVisual();
     this.setupParticles();
 
@@ -77,28 +79,26 @@ export class GameRenderer {
 
   private setupLights() {
     // Ambient light
-    const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
     this.scene.add(ambient);
 
-    // Main golden spotlight from above front
-    const mainSpot = new THREE.SpotLight(0xffdf80, 2.5);
-    mainSpot.position.set(0, 9, 3);
-    mainSpot.angle = Math.PI / 4;
-    mainSpot.penumbra = 0.5;
+    // Main golden spotlight from above front onto pusher deck
+    const mainSpot = new THREE.SpotLight(0xffe28a, 2.8);
+    mainSpot.position.set(0, 7.5, 1.5);
+    mainSpot.angle = Math.PI / 3.5;
+    mainSpot.penumbra = 0.4;
     mainSpot.castShadow = true;
     mainSpot.shadow.mapSize.width = 1024;
     mainSpot.shadow.mapSize.height = 1024;
-    mainSpot.shadow.camera.near = 2;
-    mainSpot.shadow.camera.far = 16;
     this.scene.add(mainSpot);
 
     // Neon accent edge rim lights
-    const blueRim = new THREE.PointLight(0x00d4ff, 1.8, 10);
-    blueRim.position.set(-2.8, 2.0, 0);
+    const blueRim = new THREE.PointLight(0x00d4ff, 2.0, 8);
+    blueRim.position.set(-2.2, 1.5, -0.4);
     this.scene.add(blueRim);
 
-    const magentaRim = new THREE.PointLight(0xff007f, 1.8, 10);
-    magentaRim.position.set(2.8, 2.0, 0);
+    const magentaRim = new THREE.PointLight(0xff007f, 2.0, 8);
+    magentaRim.position.set(2.2, 1.5, -0.4);
     this.scene.add(magentaRim);
 
     // Croun upper spotlight
@@ -112,85 +112,64 @@ export class GameRenderer {
   }
 
   private setupStaticDecorations() {
-    // Lower Deck platform
     const deckMat = new THREE.MeshStandardMaterial({
       color: 0x181c2e,
       roughness: 0.25,
       metalness: 0.85,
     });
-    const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.4, 3.6), deckMat);
-    lowerDeck.position.set(0, -0.2, 0.8);
+
+    // Lower Deck platform (compact length 1.7m, center Z = -0.05)
+    const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.3, 1.7), deckMat);
+    lowerDeck.position.set(0, -0.15, -0.05);
     lowerDeck.receiveShadow = true;
     this.scene.add(lowerDeck);
 
     // Lower deck glowing side trims
     const trimMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-    const leftTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 3.6), trimMat);
-    leftTrim.position.set(-1.7, 0.02, 0.8);
+    const leftTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.7), trimMat);
+    leftTrim.position.set(-1.5, 0.01, -0.05);
     this.scene.add(leftTrim);
-    const rightTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 3.6), trimMat);
-    rightTrim.position.set(1.7, 0.02, 0.8);
+    const rightTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.7), trimMat);
+    rightTrim.position.set(1.5, 0.01, -0.05);
     this.scene.add(rightTrim);
 
-    // Upper Deck platform
-    const upperDeck = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.4, 2.4), deckMat);
-    upperDeck.position.set(0, 0.3, -3.2);
-    upperDeck.receiveShadow = true;
-    this.scene.add(upperDeck);
+    // Front Payout Edge Glow Bar
+    const payoutGlowMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
+    const payoutBar = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.04, 0.04), payoutGlowMat);
+    payoutBar.position.set(0, 0.01, 0.8);
+    this.scene.add(payoutBar);
 
-    // Slope feeder
-    const slopeMat = new THREE.MeshStandardMaterial({
-      color: 0x111625,
-      roughness: 0.3,
-      metalness: 0.6,
-    });
-    const slope = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.1, 2.0), slopeMat);
-    slope.position.set(0, 1.8, -4.6);
-    slope.rotation.x = 0.72;
-    this.scene.add(slope);
+    // Upper stationary rear pusher back-wall
+    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.6, 0.1), deckMat);
+    upperBack.position.set(0, 0.75, -1.95);
+    upperBack.receiveShadow = true;
+    this.scene.add(upperBack);
 
-    // Deflector pins (nails)
-    const pinGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.4, 12);
-    const pinMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.1 });
-    const pinPositions = [
-      [-1.0, 1.5, -4.4], [-0.3, 1.5, -4.4], [0.4, 1.5, -4.4], [1.1, 1.5, -4.4],
-      [-0.7, 1.2, -4.0], [0.0, 1.2, -4.0], [0.7, 1.2, -4.0],
-      [-1.2, 0.9, -3.6], [-0.4, 0.9, -3.6], [0.4, 0.9, -3.6], [1.2, 0.9, -3.6],
-    ];
-    for (const [px, py, pz] of pinPositions) {
-      const pin = new THREE.Mesh(pinGeo, pinMat);
-      pin.position.set(px, py, pz);
-      this.scene.add(pin);
-    }
+    // Upper back slope / feeder guide
+    const slopeMat = new THREE.MeshStandardMaterial({ color: 0x111625, roughness: 0.3, metalness: 0.6 });
+    const backSlope = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.1, 0.8), slopeMat);
+    backSlope.position.set(0, 1.4, -2.4);
+    backSlope.rotation.x = 0.55;
+    this.scene.add(backSlope);
 
     // Outer Cabinet Frame
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x0a0f1d, roughness: 0.4, metalness: 0.7 });
-    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.5, 7.5), frameMat);
-    leftWall.position.set(-2.2, 1.2, -1.2);
+    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.5, 4.5), frameMat);
+    leftWall.position.set(-1.85, 0.8, -0.7);
     this.scene.add(leftWall);
 
-    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.2, 3.5, 7.5), frameMat);
-    rightWall.position.set(2.2, 1.2, -1.2);
+    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.5, 4.5), frameMat);
+    rightWall.position.set(1.85, 0.8, -0.7);
     this.scene.add(rightWall);
-
-    // Background arcade neon pillars
-    const pillarMat = new THREE.MeshBasicMaterial({ color: 0xff00aa });
-    const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4.0), pillarMat);
-    p1.position.set(-2.1, 1.8, -3.5);
-    this.scene.add(p1);
-    const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4.0), pillarMat);
-    p2.position.set(2.1, 1.8, -3.5);
-    this.scene.add(p2);
   }
 
   private setupInstancedCoins() {
-    // Shiny gold coin geometry: cylinder radius 0.16, height 0.04
-    const coinGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.04, 20);
+    // Thick substantial shiny gold coin geometry: radius 0.18, height 0.09!
+    const coinGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.09, 24);
     const coinMat = new THREE.MeshStandardMaterial({
-      color: 0xffcc00,
+      color: 0xffc800,
       metalness: 0.92,
-      roughness: 0.18,
-      bumpScale: 0.05,
+      roughness: 0.16,
     });
 
     this.coinInstancedMesh = new THREE.InstancedMesh(coinGeo, coinMat, this.maxCoins);
@@ -201,27 +180,27 @@ export class GameRenderer {
   }
 
   private setupPusherAndShields() {
-    // Kinematic Pusher body
-    const pusherGeo = new THREE.BoxGeometry(3.4, 0.5, 1.8);
+    // Kinematic Pusher body (width 3.0m, height 0.44m, length 1.2m)
+    const pusherGeo = new THREE.BoxGeometry(3.0, 0.44, 1.2);
     const pusherMat = new THREE.MeshStandardMaterial({
-      color: 0x242a42,
+      color: 0x22283e,
       metalness: 0.8,
       roughness: 0.3,
     });
     this.pusherMesh = new THREE.Mesh(pusherGeo, pusherMat);
-    this.pusherMesh.position.set(0, 0.45, -1.8);
+    this.pusherMesh.position.set(0, 0.38, -1.35);
     this.pusherMesh.castShadow = true;
     this.pusherMesh.receiveShadow = true;
 
     // Glowing front LED strip on pusher
-    const ledMat = new THREE.MeshBasicMaterial({ color: 0xff9900 });
-    const frontLed = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.06, 0.04), ledMat);
-    frontLed.position.set(0, 0.1, 0.91);
+    const ledMat = new THREE.MeshBasicMaterial({ color: 0xff8800 });
+    const frontLed = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.06, 0.04), ledMat);
+    frontLed.position.set(0, 0.12, 0.61);
     this.pusherMesh.add(frontLed);
     this.scene.add(this.pusherMesh);
 
     // Fever Golden Shields (Left & Right)
-    const shieldGeo = new THREE.BoxGeometry(0.12, 0.8, 3.6);
+    const shieldGeo = new THREE.BoxGeometry(0.08, 0.6, 1.7);
     const shieldMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       metalness: 0.95,
@@ -230,18 +209,17 @@ export class GameRenderer {
     });
 
     this.leftShieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-    this.leftShieldMesh.position.set(-1.75, -1.0, 0.8);
+    this.leftShieldMesh.position.set(-1.54, -1.0, -0.05);
     this.scene.add(this.leftShieldMesh);
 
     this.rightShieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-    this.rightShieldMesh.position.set(1.75, -1.0, 0.8);
+    this.rightShieldMesh.position.set(1.54, -1.0, -0.05);
     this.scene.add(this.rightShieldMesh);
   }
 
   private setup2xGate() {
     this.gateMesh = new THREE.Group();
 
-    // Emerald glowing gate arch
     const archMat = new THREE.MeshStandardMaterial({
       color: 0x10b981,
       emissive: 0x059669,
@@ -250,28 +228,48 @@ export class GameRenderer {
       roughness: 0.2,
     });
 
-    const leftPost = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6), archMat);
+    const leftPost = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5), archMat);
     leftPost.position.set(-0.35, 0, 0);
-    const rightPost = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6), archMat);
+    const rightPost = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5), archMat);
     rightPost.position.set(0.35, 0, 0);
     const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.08, 0.08), archMat);
-    topBar.position.set(0, 0.3, 0);
+    topBar.position.set(0, 0.25, 0);
 
     // Glowing badge in center
     const badgeMat = new THREE.MeshBasicMaterial({ color: 0x34d399 });
-    const sign = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.18, 0.02), badgeMat);
-    sign.position.set(0, 0.3, 0.04);
+    const sign = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.16, 0.02), badgeMat);
+    sign.position.set(0, 0.25, 0.04);
 
     this.gateMesh.add(leftPost);
     this.gateMesh.add(rightPost);
     this.gateMesh.add(topBar);
     this.gateMesh.add(sign);
-    this.gateMesh.position.set(0, 1.3, -3.2);
+    this.gateMesh.position.set(0, 1.15, -1.35);
     this.scene.add(this.gateMesh);
   }
 
+  private setupShooterGuide() {
+    // 3D Coin Drop Chute / Nozzle directly visible above the moving pusher deck
+    const nozzleMat = new THREE.MeshStandardMaterial({
+      color: 0x38bdf8,
+      emissive: 0x0284c7,
+      metalness: 0.7,
+      roughness: 0.2,
+    });
+    this.shooterGuideMesh = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.22, 16), nozzleMat);
+    this.shooterGuideMesh.rotation.x = Math.PI; // point downwards
+    this.shooterGuideMesh.position.set(0, 1.45, -1.45);
+    this.scene.add(this.shooterGuideMesh);
+  }
+
+  public updateShooterPosition(x: number) {
+    if (this.shooterGuideMesh) {
+      this.shooterGuideMesh.position.x = x;
+    }
+  }
+
   private setupChucker() {
-    const chuckerGeo = new THREE.BoxGeometry(0.7, 0.1, 0.4);
+    const chuckerGeo = new THREE.BoxGeometry(0.7, 0.08, 0.3);
     const chuckerMat = new THREE.MeshStandardMaterial({
       color: 0x0284c7,
       emissive: 0x0369a1,
@@ -279,12 +277,11 @@ export class GameRenderer {
       roughness: 0.2,
     });
     this.chuckerMesh = new THREE.Mesh(chuckerGeo, chuckerMat);
-    this.chuckerMesh.position.set(0, 0.1, 1.1);
+    this.chuckerMesh.position.set(0, 0.08, 0.35);
 
-    // Top indicator light
     const lampMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
     const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.02, 16), lampMat);
-    lamp.position.set(0, 0.06, 0);
+    lamp.position.set(0, 0.05, 0);
     this.chuckerMesh.add(lamp);
     this.scene.add(this.chuckerMesh);
   }
@@ -434,9 +431,9 @@ export class GameRenderer {
       this.targetCameraPos.set(0, 10.4, 1.6);
       this.targetCameraLookAt.set(0, 7.0, -1.0);
     } else {
-      // Main Playfield view
-      this.targetCameraPos.set(0, 5.2, 5.8);
-      this.targetCameraLookAt.set(0, 0.4, -0.6);
+      // Main Playfield view (focused directly on moving deck and shortened playfield)
+      this.targetCameraPos.set(0, 3.8, 2.5);
+      this.targetCameraLookAt.set(0, 0.25, -0.6);
     }
   }
 
