@@ -65,6 +65,7 @@ export class PhysicsWorld {
   public crounPockets: CrounPocket[] = [];
   public crounBall: CrounBallInstance | null = null;
   public isCrounActive = false;
+  public crounTimer = 0;
 
   // Event callbacks
   public onPayoutCoin: ((count: number) => void) | null = null;
@@ -190,38 +191,60 @@ export class PhysicsWorld {
   }
 
   /**
-   * Croun Bowl & 6 Pockets (Physical Jackpot Roulette)
+   * Croun Bowl & 6 Pockets (Continuous Trimesh Concave Bowl)
    */
   private createCroun() {
     const c = this.crounCenter;
-    // Bowl base bowl collider rings
-    const segments = 24;
-    const radius = 2.4;
-    for (let i = 0; i < segments; i++) {
+    const segments = 32;
+    const rOuter = 2.4;
+    const yOuter = 0.70;
+    const rPockets = 0.85;
+    const yPockets = 0.05;
+    const rCenter = 0.55;
+    const yCenter = 0.40;
+
+    const vertices: number[] = [];
+    const indices: number[] = [];
+
+    // Ring vertices around Croun center (0, y, 0 relative to body at c)
+    for (let i = 0; i <= segments; i++) {
       const angle = (i / segments) * Math.PI * 2;
-      const x = c.x + Math.cos(angle) * radius;
-      const z = c.z + Math.sin(angle) * radius;
-      const rimBody = this.world.createRigidBody(
-        RAPIER.RigidBodyDesc.fixed()
-          .setTranslation(x, c.y + 0.6, z)
-          .setRotation({ x: 0, y: Math.sin(angle / 2), z: 0, w: Math.cos(angle / 2) })
-      );
-      this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.35, 0.6, 0.1).setRestitution(0.4).setFriction(0.1), rimBody);
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      // V0: Outer rim vertical wall top
+      vertices.push(cos * rOuter, yOuter + 0.50, sin * rOuter);
+      // V1: Outer rim sloped bowl top
+      vertices.push(cos * rOuter, yOuter, sin * rOuter);
+      // V2: Pocket ring floor
+      vertices.push(cos * rPockets, yPockets, sin * rPockets);
+      // V3: Center spindle base
+      vertices.push(cos * rCenter, yPockets, sin * rCenter);
+    }
+    // Apex of center spindle
+    const apexIdx = (segments + 1) * 4;
+    vertices.push(0, yCenter, 0);
+
+    for (let i = 0; i < segments; i++) {
+      const b = i * 4;
+      const n = (i + 1) * 4;
+      // Outer rim vertical wall
+      indices.push(b + 0, b + 1, n + 1);
+      indices.push(b + 0, n + 1, n + 0);
+      // Sloped bowl surface
+      indices.push(b + 1, b + 2, n + 2);
+      indices.push(b + 1, n + 2, n + 1);
+      // Pocket floor track
+      indices.push(b + 2, b + 3, n + 3);
+      indices.push(b + 2, n + 3, n + 2);
+      // Center spindle cone
+      indices.push(b + 3, apexIdx, n + 3);
     }
 
-    // Sloped bowl floor plates
-    for (let i = 0; i < 16; i++) {
-      const angle = (i / 16) * Math.PI * 2;
-      const rInner = 1.3;
-      const px = c.x + Math.cos(angle) * rInner;
-      const pz = c.z + Math.sin(angle) * rInner;
-      const plateBody = this.world.createRigidBody(
-        RAPIER.RigidBodyDesc.fixed()
-          .setTranslation(px, c.y + 0.1, pz)
-          .setRotation({ x: -Math.cos(angle) * 0.15, y: 0, z: -Math.sin(angle) * 0.15, w: 0.98 })
-      );
-      this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.3, 0.05, 0.3).setFriction(0.1).setRestitution(0.2), plateBody);
-    }
+    const vArray = new Float32Array(vertices);
+    const iArray = new Uint32Array(indices);
+    const bowlBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(c.x, c.y, c.z));
+    const colDesc = RAPIER.ColliderDesc.trimesh(vArray, iArray).setFriction(0.12).setRestitution(0.25);
+    this.world.createCollider(colDesc, bowlBody);
 
     // 6 Pockets configuration:
     // Index 0: GRAND JACKPOT (1/6)
@@ -236,15 +259,15 @@ export class PhysicsWorld {
       '50',        // 5: Blue
     ];
 
-    const pocketRadius = 0.85;
+    this.crounPockets = [];
     for (let i = 0; i < 6; i++) {
       const angle = (i / 6) * Math.PI * 2;
-      const px = c.x + Math.cos(angle) * pocketRadius;
-      const py = c.y - 0.2;
-      const pz = c.z + Math.sin(angle) * pocketRadius;
+      const px = c.x + Math.cos(angle) * rPockets;
+      const py = c.y + yPockets;
+      const pz = c.z + Math.sin(angle) * rPockets;
 
       const pBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(px, py, pz));
-      const col = this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.22, 0.15, 0.22).setSensor(true), pBody);
+      const col = this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.24, 0.20, 0.24).setSensor(true), pBody);
 
       this.crounPockets.push({
         index: i,
@@ -481,21 +504,22 @@ export class PhysicsWorld {
    * Start Croun Roulette Ball Drop
    */
   public launchCrounBall() {
-    if (!this.isInitialized || this.isCrounActive) return;
+    if (!this.isInitialized) return;
     this.isCrounActive = true;
+    this.crounTimer = 0;
 
     // Remove previous ball if any
     if (this.crounBall) {
-      this.world.removeCollider(this.crounBall.collider, false);
-      this.world.removeRigidBody(this.crounBall.body);
+      try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
+      try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
       this.crounBall = null;
     }
 
     const c = this.crounCenter;
     const launchAngle = Math.random() * Math.PI * 2;
-    const spawnX = c.x + Math.cos(launchAngle) * 2.2;
-    const spawnZ = c.z + Math.sin(launchAngle) * 2.2;
-    const spawnY = c.y + 0.9;
+    const spawnX = c.x + Math.cos(launchAngle) * 2.15;
+    const spawnZ = c.z + Math.sin(launchAngle) * 2.15;
+    const spawnY = c.y + 0.85;
 
     const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(spawnX, spawnY, spawnZ)
@@ -503,16 +527,16 @@ export class PhysicsWorld {
       .setAngularDamping(0.05);
     const body = this.world.createRigidBody(bodyDesc);
 
-    const colliderDesc = RAPIER.ColliderDesc.ball(0.24)
-      .setRestitution(0.5)
-      .setFriction(0.08)
+    const colliderDesc = RAPIER.ColliderDesc.ball(0.22)
+      .setRestitution(0.25)
+      .setFriction(0.10)
       .setMass(2.0);
     const collider = this.world.createCollider(colliderDesc, body);
 
     // Give high tangential velocity for orbital rotation
     const tangentX = -Math.sin(launchAngle) * 4.2;
     const tangentZ = Math.cos(launchAngle) * 4.2;
-    body.setLinvel({ x: tangentX, y: -0.5, z: tangentZ }, true);
+    body.setLinvel({ x: tangentX, y: -0.3, z: tangentZ }, true);
 
     this.crounBall = { body, collider };
   }
@@ -601,36 +625,50 @@ export class PhysicsWorld {
 
     // 7. Check Croun Ball Pocket Landing
     if (this.isCrounActive && this.crounBall) {
+      this.crounTimer += dt;
       const bPos = this.crounBall.body.translation();
       const vel = this.crounBall.body.linvel();
       const speed = Math.hypot(vel.x, vel.y, vel.z);
 
+      let winnerPocket: CrounPocket | null = null;
+
+      // 7a. Natural pocket collision check
       for (const pocket of this.crounPockets) {
         const dist = Math.hypot(bPos.x - pocket.position.x, bPos.z - pocket.position.z);
-        if (dist < 0.24 && bPos.y <= pocket.position.y + 0.22 && speed < 1.8) {
-          const resultType = pocket.type;
-          this.isCrounActive = false;
-          if (this.crounBall) {
-            try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
-            try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
-            this.crounBall = null;
-          }
-          if (this.onCrounResult) {
-            this.onCrounResult(resultType);
-          }
+        if (dist < 0.26 && bPos.y <= pocket.position.y + 0.28 && speed < 2.0) {
+          winnerPocket = pocket;
           break;
         }
       }
 
-      if (bPos.y < this.crounCenter.y - 1.5) {
+      // 7b. Settled or timeout safety check (roulette completes naturally in 3-6s)
+      if (!winnerPocket && (this.crounTimer > 7.0 || (this.crounTimer > 3.0 && speed < 0.35))) {
+        let minDist = 999;
+        for (const pocket of this.crounPockets) {
+          const dist = Math.hypot(bPos.x - pocket.position.x, bPos.z - pocket.position.z);
+          if (dist < minDist) {
+            minDist = dist;
+            winnerPocket = pocket;
+          }
+        }
+      }
+
+      // 7c. Fallback if ball somehow escapes
+      if (!winnerPocket && bPos.y < this.crounCenter.y - 1.5) {
+        winnerPocket = this.crounPockets[Math.floor(Math.random() * this.crounPockets.length)];
+      }
+
+      if (winnerPocket) {
+        const resultType = winnerPocket.type;
         this.isCrounActive = false;
         if (this.crounBall) {
           try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
           try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
           this.crounBall = null;
         }
-        const fallback = this.crounPockets[Math.floor(Math.random() * this.crounPockets.length)].type;
-        if (this.onCrounResult) this.onCrounResult(fallback);
+        if (this.onCrounResult) {
+          this.onCrounResult(resultType);
+        }
       }
     }
 

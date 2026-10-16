@@ -315,68 +315,80 @@ export class GameRenderer {
     const c = { x: 0, y: 7.0, z: -1.0 };
     this.crounGroup.position.set(c.x, c.y, c.z);
 
-    // 1. Sloped Bowl Outer Wall (Royal purple-gold casino finish)
-    const bowlGeo = new THREE.CylinderGeometry(2.6, 1.3, 0.9, 36, 1, true);
-    const bowlMat = new THREE.MeshStandardMaterial({
-      color: 0x5a3b82,
-      metalness: 0.25,
+    // 1. Outer Rim Vertical Wall (Y = 0.70 to 1.20, radius 2.4m)
+    const rimWallGeo = new THREE.CylinderGeometry(2.4, 2.4, 0.50, 36, 1, true);
+    const rimWallMat = new THREE.MeshStandardMaterial({
+      color: 0x4a2e72,
+      metalness: 0.3,
       roughness: 0.35,
       side: THREE.DoubleSide,
     });
+    const rimWall = new THREE.Mesh(rimWallGeo, rimWallMat);
+    rimWall.position.set(0, 0.95, 0);
+    this.crounGroup.add(rimWall);
+
+    // 2. Sloped Bowl Surface (Radius 2.4 at Y=0.70 down to radius 0.85 at Y=0.05)
+    const bowlGeo = new THREE.CylinderGeometry(2.4, 0.85, 0.65, 36, 1, true);
+    const bowlMat = new THREE.MeshStandardMaterial({
+      color: 0x381f5c,
+      metalness: 0.35,
+      roughness: 0.3,
+      side: THREE.DoubleSide,
+    });
     const bowl = new THREE.Mesh(bowlGeo, bowlMat);
-    bowl.position.set(0, 0.5, 0);
+    bowl.position.set(0, 0.375, 0);
     this.crounGroup.add(bowl);
 
-    // 2. Bowl Base Floor Dish (Brightly illuminated velvet bed)
-    const floorGeo = new THREE.CylinderGeometry(2.4, 0.4, 0.35, 36, 1, false);
-    const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x3b245e,
-      roughness: 0.3,
+    // 3. Pocket Floor Track (Radius 0.85 to 0.55 at Y = 0.05)
+    const trackGeo = new THREE.CylinderGeometry(0.85, 0.55, 0.04, 36, 1, false);
+    const trackMat = new THREE.MeshStandardMaterial({
+      color: 0x24123d,
+      roughness: 0.4,
       metalness: 0.2,
     });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.position.set(0, 0.05, 0);
-    this.crounGroup.add(floor);
+    const track = new THREE.Mesh(trackGeo, trackMat);
+    track.position.set(0, 0.03, 0);
+    this.crounGroup.add(track);
 
-    // 3. Central Golden Spindle Cone
-    const spindleGeo = new THREE.ConeGeometry(0.38, 0.8, 24);
+    // 4. Central Golden Spindle Cone (Radius 0.55, apex at Y=0.40)
+    const spindleGeo = new THREE.ConeGeometry(0.55, 0.35, 36);
     const spindleMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       metalness: 0.85,
       roughness: 0.15,
-      emissive: 0x553300,
+      emissive: 0x664400,
       emissiveIntensity: 0.6,
     });
     const spindle = new THREE.Mesh(spindleGeo, spindleMat);
-    spindle.position.set(0, 0.4, 0);
+    spindle.position.set(0, 0.225, 0);
     this.crounGroup.add(spindle);
 
     // Center Spindle Gem Cap (Glowing Ruby)
     const gemGeo = new THREE.SphereGeometry(0.12, 16, 16);
     const gemMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
     const gem = new THREE.Mesh(gemGeo, gemMat);
-    gem.position.set(0, 0.82, 0);
+    gem.position.set(0, 0.44, 0);
     this.crounGroup.add(gem);
 
-    // 4. Golden Outer Rim & Neon LED Halo Ring
-    const rimGeo = new THREE.TorusGeometry(2.6, 0.10, 16, 48);
+    // 5. Golden Outer Rim & Neon LED Halo Ring (At Y = 1.20)
+    const rimGeo = new THREE.TorusGeometry(2.4, 0.08, 16, 48);
     const rimMat = new THREE.MeshStandardMaterial({
       color: 0xffea00,
-      metalness: 0.8,
-      roughness: 0.15,
+      metalness: 0.85,
+      roughness: 0.12,
       emissive: 0x664400,
       emissiveIntensity: 0.5,
     });
     const rim = new THREE.Mesh(rimGeo, rimMat);
     rim.rotation.x = Math.PI / 2;
-    rim.position.set(0, 0.95, 0);
+    rim.position.set(0, 1.20, 0);
     this.crounGroup.add(rim);
 
     // Glowing Neon Edge Strip
     const neonStripMat = new THREE.MeshBasicMaterial({ color: 0xfff066 });
-    const neonStrip = new THREE.Mesh(new THREE.TorusGeometry(2.56, 0.035, 8, 48), neonStripMat);
+    const neonStrip = new THREE.Mesh(new THREE.TorusGeometry(2.38, 0.03, 8, 48), neonStripMat);
     neonStrip.rotation.x = Math.PI / 2;
-    neonStrip.position.set(0, 0.98, 0);
+    neonStrip.position.set(0, 1.21, 0);
     this.crounGroup.add(neonStrip);
 
     // 5. 6 Pockets with Vivid Neon Glow Rings & Illuminated Cups
@@ -523,8 +535,8 @@ export class GameRenderer {
     this.isCrounView = active;
     if (active) {
       // Croun bird-eye dramatic angled view - fully centered and clear
-      this.targetCameraPos.set(0, 11.2, 1.8);
-      this.targetCameraLookAt.set(0, 7.0, -1.0);
+      this.targetCameraPos.set(0, 11.2, 1.6);
+      this.targetCameraLookAt.set(0, 7.3, -1.0);
     } else {
       // Main Playfield view (focused directly on moving deck and shortened playfield)
       this.targetCameraPos.set(0, 3.3, 2.1);
