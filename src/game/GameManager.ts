@@ -487,16 +487,22 @@ export class GameManager {
     });
   }
 
+  private alertTimeout: number | null = null;
+
   /**
    * Big Center Toast Notification
    */
   public showAlert(title: string, desc: string, duration = 2200) {
+    if (this.alertTimeout !== null) {
+      clearTimeout(this.alertTimeout);
+    }
     this.elAlertTitle.textContent = title;
     this.elAlertDesc.textContent = desc;
     this.elAlertBanner.classList.remove('hidden');
 
-    setTimeout(() => {
+    this.alertTimeout = window.setTimeout(() => {
       this.elAlertBanner.classList.add('hidden');
+      this.alertTimeout = null;
     }, duration);
   }
 

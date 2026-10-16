@@ -24,10 +24,10 @@ export class GameRenderer {
   private crounGroup!: THREE.Group;
   private shooterGuideMesh!: THREE.Mesh;
 
-  // Camera animation: positioned higher and closer for a clear arcade perspective
-  private targetCameraPos = new THREE.Vector3(0, 3.8, 2.5);
-  private targetCameraLookAt = new THREE.Vector3(0, 0.25, -0.6);
-  private currentCameraLookAt = new THREE.Vector3(0, 0.25, -0.6);
+  // Camera animation: positioned closer and wider for an immersive full-screen arcade perspective
+  private targetCameraPos = new THREE.Vector3(0, 3.3, 2.1);
+  private targetCameraLookAt = new THREE.Vector3(0, 0.2, -0.65);
+  private currentCameraLookAt = new THREE.Vector3(0, 0.2, -0.65);
   public isCrounView = false;
   private shakeOffset = new THREE.Vector3();
   private shakeDuration = 0;
@@ -45,7 +45,7 @@ export class GameRenderer {
     this.scene.fog = new THREE.FogExp2(0x060814, 0.04);
 
     this.camera = new THREE.PerspectiveCamera(
-      46,
+      52,
       window.innerWidth / window.innerHeight,
       0.1,
       50
@@ -432,8 +432,8 @@ export class GameRenderer {
       this.targetCameraLookAt.set(0, 7.0, -1.0);
     } else {
       // Main Playfield view (focused directly on moving deck and shortened playfield)
-      this.targetCameraPos.set(0, 3.8, 2.5);
-      this.targetCameraLookAt.set(0, 0.25, -0.6);
+      this.targetCameraPos.set(0, 3.3, 2.1);
+      this.targetCameraLookAt.set(0, 0.2, -0.65);
     }
   }
 

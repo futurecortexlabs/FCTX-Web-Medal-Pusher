@@ -7,9 +7,20 @@ export class SoundManager {
   private isMuted: boolean = false;
   private feverBgmInterval: number | null = null;
   private isFeverPlaying: boolean = false;
+  private lastPlayTime: Map<string, number> = new Map();
 
   constructor() {
     // Initialized on first user interaction to comply with browser autoplay policies
+  }
+
+  private shouldThrottle(key: string, intervalMs: number): boolean {
+    const now = performance.now();
+    const last = this.lastPlayTime.get(key) || 0;
+    if (now - last < intervalMs) {
+      return true;
+    }
+    this.lastPlayTime.set(key, now);
+    return false;
   }
 
   private initContext() {
@@ -36,7 +47,7 @@ export class SoundManager {
 
   // Coin insertion sound: sharp metal click
   public playCoinDrop() {
-    if (this.isMuted) return;
+    if (this.isMuted || this.shouldThrottle('coin_drop', 60)) return;
     this.initContext();
     if (!this.ctx) return;
 
@@ -58,7 +69,7 @@ export class SoundManager {
 
   // Coin clinking on field
   public playCoinClink() {
-    if (this.isMuted) return;
+    if (this.isMuted || this.shouldThrottle('coin_clink', 70)) return;
     this.initContext();
     if (!this.ctx) return;
 
@@ -82,7 +93,7 @@ export class SoundManager {
 
   // 2x Gate multiplier hit: crystal high chime
   public playGatePass() {
-    if (this.isMuted) return;
+    if (this.isMuted || this.shouldThrottle('gate_pass', 120)) return;
     this.initContext();
     if (!this.ctx) return;
 
@@ -105,7 +116,7 @@ export class SoundManager {
 
   // Chucker Sensor hit
   public playChuckerHit() {
-    if (this.isMuted) return;
+    if (this.isMuted || this.shouldThrottle('chucker_hit', 150)) return;
     this.initContext();
     if (!this.ctx) return;
 
@@ -137,7 +148,7 @@ export class SoundManager {
 
   // Roulette tick
   public playRouletteTick() {
-    if (this.isMuted) return;
+    if (this.isMuted || this.shouldThrottle('roulette_tick', 45)) return;
     this.initContext();
     if (!this.ctx) return;
 

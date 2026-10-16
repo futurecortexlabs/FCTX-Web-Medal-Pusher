@@ -34,6 +34,8 @@ export class PhysicsWorld {
   public coins: Map<number, CoinInstance> = new Map();
   public balls: Map<number, BallInstance> = new Map();
   private nextEntityId = 1;
+  public readonly maxFieldCoins = 140; // Hard cap to guarantee 60fps without WASM thread lock
+  private gateCooldown = 0;
 
   // Kinematic Pusher
   public pusherBody!: RAPIER.RigidBody;
@@ -268,14 +270,37 @@ export class PhysicsWorld {
   public spawnCoin(x: number, y: number = 1.35, z: number = -1.45, isBonus = false): CoinInstance | null {
     if (!this.isInitialized) return null;
 
+    // Safety hard cap: if reaching limit, smoothly prune the most advanced front coin
+    if (this.coins.size >= this.maxFieldCoins) {
+      let oldestId: number | null = null;
+      let maxZ = -999;
+      for (const [id, c] of this.coins.entries()) {
+        const cz = c.body.translation().z;
+        if (cz > maxZ) {
+          maxZ = cz;
+          oldestId = id;
+        }
+      }
+      if (oldestId !== null) {
+        const c = this.coins.get(oldestId)!;
+        this.world.removeCollider(c.collider, false);
+        this.world.removeRigidBody(c.body);
+        this.coins.delete(oldestId);
+        // Automatically credit payout if pruned from front edge
+        if (maxZ > 0.6 && this.onPayoutCoin) {
+          this.onPayoutCoin(1);
+        }
+      }
+    }
+
     // Spec parameters: Mass 1.0kg, Restitution 0.10, Friction 0.16 (smooth sliding avalanche)
     const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
       .setTranslation(x, y, z)
-      .setLinearDamping(0.15)
-      .setAngularDamping(0.2);
+      .setLinearDamping(0.2)
+      .setAngularDamping(0.3);
     const body = this.world.createRigidBody(bodyDesc);
 
-    // Thick substantial coin: Radius 0.18m, half-height 0.045m (Total thickness 0.09m!)
+    // Thick substantial coin: Radius 0.18m, half-height 0.045m
     const colliderDesc = RAPIER.ColliderDesc.cylinder(0.045, 0.18)
       .setRestitution(0.10)
       .setFriction(0.16)
@@ -283,7 +308,7 @@ export class PhysicsWorld {
     const collider = this.world.createCollider(colliderDesc, body);
 
     // Slight forward/downward nudge
-    body.applyImpulse({ x: (Math.random() - 0.5) * 0.05, y: -0.15, z: 0.08 }, true);
+    body.applyImpulse({ x: (Math.random() - 0.5) * 0.04, y: -0.15, z: 0.08 }, true);
 
     const instance: CoinInstance = {
       body,
@@ -513,18 +538,24 @@ export class PhysicsWorld {
     this.world.step();
 
     // 5. Check Gate Collisions (Sensor Intersection right above pusher)
+    if (this.gateCooldown > 0) {
+      this.gateCooldown -= dt;
+    }
     const gatePos = this.gateBody.translation();
     this.coins.forEach(coin => {
       if (coin.passedGate) return;
       const pos = coin.body.translation();
       const dist = Math.hypot(pos.x - gatePos.x, pos.y - gatePos.y, pos.z - gatePos.z);
-      if (dist < 0.42) {
+      if (dist < 0.40) {
         coin.passedGate = true;
-        if (this.onGateHit) {
-          this.onGateHit({ x: pos.x, y: pos.y, z: pos.z });
+        if (this.gateCooldown <= 0) {
+          this.gateCooldown = 0.20; // 200ms debounce
+          if (this.onGateHit) {
+            this.onGateHit({ x: pos.x, y: pos.y, z: pos.z });
+          }
+          // Spawn additional duplicate coin on moving deck
+          this.spawnCoin(pos.x + (Math.random() - 0.5) * 0.1, pos.y + 0.08, pos.z, true);
         }
-        // Spawn additional duplicate coin immediately on moving deck
-        this.spawnCoin(pos.x + (Math.random() - 0.5) * 0.15, pos.y + 0.08, pos.z, true);
       }
     });
 

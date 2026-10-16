@@ -20,7 +20,7 @@ async function bootstrap() {
   // 4. Main Animation Loop
   let lastTime = performance.now();
   function animate(now: number) {
-    const dt = Math.min((now - lastTime) / 1000, 0.05);
+    const dt = Math.min((now - lastTime) / 1000, 0.033);
     lastTime = now;
 
     // Fixed / clamped physics step
