@@ -610,6 +610,11 @@ export class PhysicsWorld {
         if (dist < 0.24 && bPos.y <= pocket.position.y + 0.22 && speed < 1.8) {
           const resultType = pocket.type;
           this.isCrounActive = false;
+          if (this.crounBall) {
+            try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
+            try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
+            this.crounBall = null;
+          }
           if (this.onCrounResult) {
             this.onCrounResult(resultType);
           }
@@ -619,6 +624,11 @@ export class PhysicsWorld {
 
       if (bPos.y < this.crounCenter.y - 1.5) {
         this.isCrounActive = false;
+        if (this.crounBall) {
+          try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
+          try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
+          this.crounBall = null;
+        }
         const fallback = this.crounPockets[Math.floor(Math.random() * this.crounPockets.length)].type;
         if (this.onCrounResult) this.onCrounResult(fallback);
       }

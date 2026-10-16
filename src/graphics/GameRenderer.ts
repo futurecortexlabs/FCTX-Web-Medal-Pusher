@@ -14,6 +14,16 @@ export class GameRenderer {
 
   private ballMeshes: Map<number, THREE.Group> = new Map();
   private crounBallMesh: THREE.Mesh | null = null;
+  private ballOuterGeo = new THREE.SphereGeometry(0.40, 24, 24);
+  private ballOuterMat = new THREE.MeshStandardMaterial({
+    color: 0xd946ef,
+    metalness: 0.85,
+    roughness: 0.15,
+    emissive: 0xa855f7,
+    emissiveIntensity: 0.5,
+  });
+  private ballInnerGeo = new THREE.SphereGeometry(0.20, 16, 16);
+  private ballInnerMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
   // Field Meshes
   private pusherMesh!: THREE.Mesh;
@@ -498,36 +508,14 @@ export class GameRenderer {
     physics.balls.forEach((ball, id) => {
       let bGroup = this.ballMeshes.get(id);
       if (!bGroup) {
-        // Spec: "透明球体オブジェクト" (Transparent crystal sphere with inner energetic core)
+        // Spec: "透明球体オブジェクト" (Crystal sphere with inner energetic core)
         const group = new THREE.Group();
 
-        // Outer transparent crystal sphere
-        const outerGeo = new THREE.SphereGeometry(0.42, 32, 32);
-        const outerMat = new THREE.MeshPhysicalMaterial({
-          color: 0xcc88ff,
-          transmission: 0.85,
-          opacity: 1.0,
-          transparent: true,
-          roughness: 0.1,
-          metalness: 0.05,
-          ior: 1.52,
-          reflectivity: 0.8,
-          clearcoat: 1.0,
-          clearcoatRoughness: 0.1,
-        });
-        const outerMesh = new THREE.Mesh(outerGeo, outerMat);
+        const outerMesh = new THREE.Mesh(this.ballOuterGeo, this.ballOuterMat);
         outerMesh.castShadow = true;
         group.add(outerMesh);
 
-        // Inner glowing core
-        const innerGeo = new THREE.SphereGeometry(0.22, 20, 20);
-        const innerMat = new THREE.MeshStandardMaterial({
-          color: 0xff00ff,
-          emissive: 0xd946ef,
-          emissiveIntensity: 1.2,
-          roughness: 0.2,
-        });
-        const innerMesh = new THREE.Mesh(innerGeo, innerMat);
+        const innerMesh = new THREE.Mesh(this.ballInnerGeo, this.ballInnerMat);
         group.add(innerMesh);
 
         this.scene.add(group);
@@ -544,16 +532,6 @@ export class GameRenderer {
     this.ballMeshes.forEach((group, id) => {
       if (!physics.balls.has(id)) {
         this.scene.remove(group);
-        group.traverse(child => {
-          if (child instanceof THREE.Mesh) {
-            child.geometry?.dispose();
-            if (Array.isArray(child.material)) {
-              child.material.forEach(m => m.dispose());
-            } else {
-              child.material?.dispose();
-            }
-          }
-        });
         this.ballMeshes.delete(id);
       }
     });

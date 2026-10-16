@@ -141,16 +141,25 @@ export class GameManager {
 
     // 5. Ball Payout (Collect 3 for JP Challenge)
     this.physics.onBallPayout = () => {
-      this.collectedBalls++;
-      this.sound.playOrbDrop();
-      this.showAlert('ORB GET!', `カラーボール獲得！(${this.collectedBalls}/3)`);
-      if (this.collectedBalls >= 3) {
-        this.collectedBalls = 0;
-        setTimeout(() => {
-          this.triggerCrounChallenge('BALL 3個獲得！');
-        }, 1200);
+      try {
+        this.collectedBalls++;
+        this.sound.playOrbDrop();
+        this.renderer.emitSparkles({ x: 0, y: 0.3, z: 0.8 }, 30);
+        this.showAlert('ORB GET!', `カラーボール獲得！(${this.collectedBalls}/3)`);
+        if (this.collectedBalls >= 3) {
+          this.collectedBalls = 0;
+          setTimeout(() => {
+            try {
+              this.triggerCrounChallenge('BALL 3個獲得！');
+            } catch (err) {
+              console.error('Error triggering croun challenge:', err);
+            }
+          }, 1200);
+        }
+        this.updateHUD();
+      } catch (e) {
+        console.error('Error in onBallPayout:', e);
       }
-      this.updateHUD();
     };
 
     // 6. Croun Result
