@@ -12,7 +12,7 @@ export class GameRenderer {
   private maxCoins = 400;
   private dummyTransform = new THREE.Object3D();
 
-  private ballMeshes: Map<number, THREE.Mesh> = new Map();
+  private ballMeshes: Map<number, THREE.Group> = new Map();
   private crounBallMesh: THREE.Mesh | null = null;
 
   // Field Meshes
@@ -491,18 +491,13 @@ export class GameRenderer {
       coinIdx++;
     });
 
-    // Hide unused coin instances beneath ground
-    for (let i = coinIdx; i < this.maxCoins; i++) {
-      this.dummyTransform.position.set(0, -999, 0);
-      this.dummyTransform.updateMatrix();
-      this.coinInstancedMesh.setMatrixAt(i, this.dummyTransform.matrix);
-    }
+    this.coinInstancedMesh.count = coinIdx;
     this.coinInstancedMesh.instanceMatrix.needsUpdate = true;
 
     // 4. Update Color Balls
     physics.balls.forEach((ball, id) => {
-      let bObj = this.ballMeshes.get(id);
-      if (!bObj) {
+      let bGroup = this.ballMeshes.get(id);
+      if (!bGroup) {
         // Spec: "透明球体オブジェクト" (Transparent crystal sphere with inner energetic core)
         const group = new THREE.Group();
 
@@ -536,20 +531,29 @@ export class GameRenderer {
         group.add(innerMesh);
 
         this.scene.add(group);
-        this.ballMeshes.set(id, group as unknown as THREE.Mesh);
-        bObj = group as unknown as THREE.Mesh;
+        this.ballMeshes.set(id, group);
+        bGroup = group;
       }
       const t = ball.body.translation();
       const r = ball.body.rotation();
-      bObj.position.set(t.x, t.y, t.z);
-      bObj.quaternion.set(r.x, r.y, r.z, r.w);
+      bGroup.position.set(t.x, t.y, t.z);
+      bGroup.quaternion.set(r.x, r.y, r.z, r.w);
     });
 
-    // Clean removed balls
-    this.ballMeshes.forEach((mesh, id) => {
+    // Clean removed balls safely
+    this.ballMeshes.forEach((group, id) => {
       if (!physics.balls.has(id)) {
-        this.scene.remove(mesh);
-        mesh.geometry.dispose();
+        this.scene.remove(group);
+        group.traverse(child => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry?.dispose();
+            if (Array.isArray(child.material)) {
+              child.material.forEach(m => m.dispose());
+            } else {
+              child.material?.dispose();
+            }
+          }
+        });
         this.ballMeshes.delete(id);
       }
     });

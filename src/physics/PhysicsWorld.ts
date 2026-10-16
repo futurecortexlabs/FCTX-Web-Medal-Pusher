@@ -34,7 +34,7 @@ export class PhysicsWorld {
   public coins: Map<number, CoinInstance> = new Map();
   public balls: Map<number, BallInstance> = new Map();
   private nextEntityId = 1;
-  public readonly maxFieldCoins = 140; // Hard cap to guarantee 60fps without WASM thread lock
+  public readonly maxFieldCoins = 120; // Hard cap to guarantee 60fps without WASM thread lock
   private gateCooldown = 0;
 
   // Kinematic Pusher
@@ -283,8 +283,12 @@ export class PhysicsWorld {
       }
       if (oldestId !== null) {
         const c = this.coins.get(oldestId)!;
-        this.world.removeCollider(c.collider, false);
-        this.world.removeRigidBody(c.body);
+        try {
+          this.world.removeCollider(c.collider, false);
+        } catch (_) {}
+        try {
+          this.world.removeRigidBody(c.body);
+        } catch (_) {}
         this.coins.delete(oldestId);
         // Automatically credit payout if pruned from front edge
         if (maxZ > 0.6 && this.onPayoutCoin) {
@@ -300,8 +304,9 @@ export class PhysicsWorld {
       .setAngularDamping(0.3);
     const body = this.world.createRigidBody(bodyDesc);
 
-    // Thick substantial coin: Radius 0.18m, half-height 0.045m
-    const colliderDesc = RAPIER.ColliderDesc.cylinder(0.045, 0.18)
+    // Thick round cylinder (eliminates contact manifold sharp-edge explosions)
+    // Radius 0.172 + 0.008 = 0.18m, half-height 0.038 + 0.008 = 0.046m
+    const colliderDesc = RAPIER.ColliderDesc.roundCylinder(0.038, 0.172, 0.008)
       .setRestitution(0.10)
       .setFriction(0.16)
       .setMass(1.0);
@@ -354,13 +359,35 @@ export class PhysicsWorld {
   public spawnMedalTower(centerX: number = 0, centerZ: number = -1.35) {
     if (!this.isInitialized) return;
 
+    // Prune excess coins first if field is full
+    const coinsNeeded = 50;
+    while (this.coins.size + coinsNeeded > this.maxFieldCoins && this.coins.size > 0) {
+      let oldestId: number | null = null;
+      let maxZ = -999;
+      for (const [id, c] of this.coins.entries()) {
+        const cz = c.body.translation().z;
+        if (cz > maxZ) {
+          maxZ = cz;
+          oldestId = id;
+        }
+      }
+      if (oldestId !== null) {
+        const c = this.coins.get(oldestId)!;
+        try { this.world.removeCollider(c.collider, false); } catch (_) {}
+        try { this.world.removeRigidBody(c.body); } catch (_) {}
+        this.coins.delete(oldestId);
+      } else {
+        break;
+      }
+    }
+
     const layers = 10;
     const coinsPerLayer = 5;
-    const layerRadius = 0.28;
+    const layerRadius = 0.32; // Non-overlapping radius (2 * 0.32 * sin(36deg) = 0.376m > 0.36m coin diameter)
     const startY = 0.70;
 
     for (let l = 0; l < layers; l++) {
-      const y = startY + l * 0.095;
+      const y = startY + l * 0.096;
       for (let c = 0; c < coinsPerLayer; c++) {
         const angle = (c / coinsPerLayer) * Math.PI * 2 + (l % 2) * 0.3;
         const x = centerX + Math.cos(angle) * layerRadius;
@@ -372,8 +399,8 @@ export class PhysicsWorld {
           .setAngularDamping(0.3);
         const body = this.world.createRigidBody(bodyDesc);
 
-        // Tower thick coins
-        const colliderDesc = RAPIER.ColliderDesc.cylinder(0.045, 0.18)
+        // Tower thick round coins
+        const colliderDesc = RAPIER.ColliderDesc.roundCylinder(0.038, 0.172, 0.008)
           .setRestitution(0.05)
           .setFriction(0.35)
           .setMass(1.0);
@@ -423,14 +450,14 @@ export class PhysicsWorld {
   public restoreBoardState(savedState: { coins?: Array<{ x: number; y: number; z: number }>; balls?: Array<{ x: number; y: number; z: number }> }) {
     // Clear existing
     this.coins.forEach(c => {
-      this.world.removeCollider(c.collider, false);
-      this.world.removeRigidBody(c.body);
+      try { this.world.removeCollider(c.collider, false); } catch (_) {}
+      try { this.world.removeRigidBody(c.body); } catch (_) {}
     });
     this.coins.clear();
 
     this.balls.forEach(b => {
-      this.world.removeCollider(b.collider, false);
-      this.world.removeRigidBody(b.body);
+      try { this.world.removeCollider(b.collider, false); } catch (_) {}
+      try { this.world.removeRigidBody(b.body); } catch (_) {}
     });
     this.balls.clear();
 
@@ -624,8 +651,8 @@ export class PhysicsWorld {
     coinsToRemove.forEach(id => {
       const c = this.coins.get(id);
       if (c) {
-        this.world.removeCollider(c.collider, false);
-        this.world.removeRigidBody(c.body);
+        try { this.world.removeCollider(c.collider, false); } catch (_) {}
+        try { this.world.removeRigidBody(c.body); } catch (_) {}
         this.coins.delete(id);
       }
     });
@@ -654,8 +681,8 @@ export class PhysicsWorld {
     ballsToRemove.forEach(id => {
       const b = this.balls.get(id);
       if (b) {
-        this.world.removeCollider(b.collider, false);
-        this.world.removeRigidBody(b.body);
+        try { this.world.removeCollider(b.collider, false); } catch (_) {}
+        try { this.world.removeRigidBody(b.body); } catch (_) {}
         this.balls.delete(id);
       }
     });

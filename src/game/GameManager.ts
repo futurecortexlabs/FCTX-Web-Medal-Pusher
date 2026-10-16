@@ -270,12 +270,14 @@ export class GameManager {
       this.elCrounStatus.textContent = `🌈 GRAND JACKPOT 獲得!! (${winJp}枚)`;
       this.sound.playGrandJackpot();
 
-      // Launch Confetti
-      confetti({
-        particleCount: 180,
-        spread: 90,
-        origin: { y: 0.5 },
-      });
+      // Launch Confetti safely
+      try {
+        confetti({
+          particleCount: 180,
+          spread: 90,
+          origin: { y: 0.5 },
+        });
+      } catch (_) {}
 
       // Spawn massive waterfall of medals directly onto moving deck
       let spawned = 0;
@@ -297,7 +299,9 @@ export class GameManager {
       this.credits += 100;
       this.physics.spawnMedalTower(0, -1.35);
       this.sound.playTowerCollapse();
-      confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      try {
+        confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
+      } catch (_) {}
     } else {
       this.elCrounStatus.textContent = '🟦 50枚払い出し獲得!!';
       this.credits += 50;
@@ -343,55 +347,57 @@ export class GameManager {
   }
 
   private resolveRouletteResult() {
-    const roll = Math.random();
+    try {
+      const roll = Math.random();
 
-    // Probabilities per spec (DOC-MP-EV-02):
-    // 💀 ハズレ (45%)
-    // 🪙 小当たり15枚 (25%) / 🏰 タワー召喚マス (5%) [合計30%]
-    // 🔮 ボール出現 (15%)
-    // 🔥 JPチャレンジ突入 (10%)
-    if (roll < 0.45) {
-      // 💀 ハズレ
-      this.setReelSymbols('💀', '💀', '💀');
-      this.elRouletteMsg.textContent = '💀 ハズレ (フィーバー+1)';
-      this.feverCount++;
-      if (this.feverCount >= 10 && !this.isFeverActive) {
-        this.triggerFeverMode();
-      }
-    } else if (roll < 0.70) {
-      // 🪙 小当たり15枚
-      this.setReelSymbols('🪙', '🪙', '🪙');
-      this.elRouletteMsg.textContent = '🪙 小当たり15枚！';
-      this.sound.playRouletteWin();
-      this.credits += 15;
-      for (let i = 0; i < 6; i++) {
-        this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 1.35, -1.45, true);
-      }
-    } else if (roll < 0.75) {
-      // 🏰 タワー召喚マス (Spec Page 1: "ルーレットのタワー召喚マス")
-      this.setReelSymbols('🏰', '🏰', '🏰');
-      this.elRouletteMsg.textContent = '🏰 タワー召喚マス当選！';
-      this.sound.playTowerCollapse();
-      this.physics.spawnMedalTower(0, -1.35);
-      this.showAlert('🏰 TOWER SUMMON!', '中央に50枚メダルタワーを召喚！');
-    } else if (roll < 0.90) {
-      // 🔮 カラーボール出現 (15%)
-      this.setReelSymbols('🔮', '🔮', '🔮');
-      this.elRouletteMsg.textContent = '🔮 カラーボール落下！';
-      this.sound.playOrbDrop();
-      this.physics.spawnBall(0, 1.45, -1.4);
-    } else {
+      // Probabilities per spec (DOC-MP-EV-02):
+      // 💀 ハズレ (45%)
+      // 🪙 小当たり15枚 (25%) / 🏰 タワー召喚マス (5%) [合計30%]
+      // 🔮 ボール出現 (15%)
       // 🔥 JPチャレンジ突入 (10%)
-      this.setReelSymbols('🔥', '🔥', '🔥');
-      this.elRouletteMsg.textContent = '🔥 JPチャレンジ突入!!';
-      this.sound.playRouletteWin();
-      setTimeout(() => {
-        this.triggerCrounChallenge('スロット当選！');
-      }, 1000);
+      if (roll < 0.45) {
+        // 💀 ハズレ
+        this.setReelSymbols('💀', '💀', '💀');
+        this.elRouletteMsg.textContent = '💀 ハズレ (フィーバー+1)';
+        this.feverCount++;
+        if (this.feverCount >= 10 && !this.isFeverActive) {
+          this.triggerFeverMode();
+        }
+      } else if (roll < 0.70) {
+        // 🪙 小当たり15枚
+        this.setReelSymbols('🪙', '🪙', '🪙');
+        this.elRouletteMsg.textContent = '🪙 小当たり15枚！';
+        this.sound.playRouletteWin();
+        this.credits += 15;
+        for (let i = 0; i < 6; i++) {
+          this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 1.35, -1.45, true);
+        }
+      } else if (roll < 0.75) {
+        // 🏰 タワー召喚マス (Spec Page 1: "ルーレットのタワー召喚マス")
+        this.setReelSymbols('🏰', '🏰', '🏰');
+        this.elRouletteMsg.textContent = '🏰 タワー召喚マス当選！';
+        this.sound.playTowerCollapse();
+        this.physics.spawnMedalTower(0, -1.35);
+        this.showAlert('🏰 TOWER SUMMON!', '中央に50枚メダルタワーを召喚！');
+      } else if (roll < 0.90) {
+        // 🔮 カラーボール出現 (15%)
+        this.setReelSymbols('🔮', '🔮', '🔮');
+        this.elRouletteMsg.textContent = '🔮 カラーボール落下！';
+        this.sound.playOrbDrop();
+        this.physics.spawnBall(0, 1.45, -1.4);
+      } else {
+        // 🔥 JPチャレンジ突入 (10%)
+        this.setReelSymbols('🔥', '🔥', '🔥');
+        this.elRouletteMsg.textContent = '🔥 JPチャレンジ突入!!';
+        this.sound.playRouletteWin();
+        setTimeout(() => {
+          this.triggerCrounChallenge('スロット当選！');
+        }, 1000);
+      }
+    } finally {
+      this.isRouletteSpinning = false;
+      this.updateHUD();
     }
-
-    this.isRouletteSpinning = false;
-    this.updateHUD();
   }
 
   private setReelSymbols(s1: string, s2: string, s3: string) {

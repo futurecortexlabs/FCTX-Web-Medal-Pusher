@@ -20,15 +20,19 @@ async function bootstrap() {
   // 4. Main Animation Loop
   let lastTime = performance.now();
   function animate(now: number) {
+    requestAnimationFrame(animate);
+
     const dt = Math.min((now - lastTime) / 1000, 0.033);
     lastTime = now;
 
-    // Fixed / clamped physics step
-    physics.step(dt);
-    game.update(dt);
-    renderer.render(dt, physics);
-
-    requestAnimationFrame(animate);
+    try {
+      // Fixed / clamped physics step
+      physics.step(dt);
+      game.update(dt);
+      renderer.render(dt, physics);
+    } catch (err) {
+      console.error('Frame execution error caught (loop kept alive):', err);
+    }
   }
   requestAnimationFrame(animate);
 }
@@ -159,6 +163,16 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
 
   window.addEventListener('keyup', e => {
     if (e.code === 'Space') {
+      game.setAutoDrop(false);
+    }
+  });
+
+  window.addEventListener('blur', () => {
+    game.setAutoDrop(false);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
       game.setAutoDrop(false);
     }
   });

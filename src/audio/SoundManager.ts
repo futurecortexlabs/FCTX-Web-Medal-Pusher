@@ -8,9 +8,19 @@ export class SoundManager {
   private feverBgmInterval: number | null = null;
   private isFeverPlaying: boolean = false;
   private lastPlayTime: Map<string, number> = new Map();
+  private noiseBuffer: AudioBuffer | null = null;
 
   constructor() {
     // Initialized on first user interaction to comply with browser autoplay policies
+  }
+
+  private safeCleanup(source: AudioScheduledSourceNode, ...extraNodes: AudioNode[]) {
+    source.onended = () => {
+      try { source.disconnect(); } catch (_) {}
+      extraNodes.forEach(n => {
+        try { n.disconnect(); } catch (_) {}
+      });
+    };
   }
 
   private shouldThrottle(key: string, intervalMs: number): boolean {
@@ -218,16 +228,18 @@ export class SoundManager {
     this.initContext();
     if (!this.ctx) return;
 
-    // Noise buffer
-    const bufferSize = this.ctx.sampleRate * 0.8;
-    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
+    // Reuse or create cached noise buffer
+    if (!this.noiseBuffer) {
+      const bufferSize = Math.floor(this.ctx.sampleRate * 0.8);
+      this.noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = this.noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
     }
 
     const noise = this.ctx.createBufferSource();
-    noise.buffer = buffer;
+    noise.buffer = this.noiseBuffer;
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'bandpass';
@@ -242,6 +254,7 @@ export class SoundManager {
     filter.connect(gain);
     gain.connect(this.ctx.destination);
 
+    this.safeCleanup(noise, filter, gain);
     noise.start();
     noise.stop(this.ctx.currentTime + 0.8);
   }
@@ -304,6 +317,7 @@ export class SoundManager {
 
       osc.connect(gain);
       gain.connect(this.ctx.destination);
+      this.safeCleanup(osc, gain);
       osc.start(now);
       osc.stop(now + 0.15);
 
@@ -317,6 +331,7 @@ export class SoundManager {
         hhGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
         hh.connect(hhGain);
         hhGain.connect(this.ctx.destination);
+        this.safeCleanup(hh, hhGain);
         hh.start(now);
         hh.stop(now + 0.05);
       }
