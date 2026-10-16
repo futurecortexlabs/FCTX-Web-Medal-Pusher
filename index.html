@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GRAND FORTUNE PUSHER - 進化版Webメダルプッシャー</title>
+  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=M+PLUS+Rounded+1c:wght@700;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="game-container">
+    <!-- 3D Viewport Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Top Jackpot & Status HUD -->
+    <header id="top-hud">
+      <div class="hud-panel jp-panel">
+        <div class="jp-title">★ GRAND JACKPOT ★</div>
+        <div class="jp-counter-box">
+          <span class="currency-symbol">🪙</span>
+          <span id="jp-counter" class="digital-odometer">0300.0</span>
+          <span class="jp-unit">MEDALS</span>
+        </div>
+        <div class="jp-sub">サイド没収がリアルタイム加算 (+0.5/枚)</div>
+      </div>
+
+      <div class="top-stats-row">
+        <!-- Credit Box -->
+        <div class="stat-box credit-box">
+          <div class="stat-label">CREDIT</div>
+          <div class="stat-value"><span id="credit-count">200</span> <small>枚</small></div>
+        </div>
+
+        <!-- Orb Challenge Box -->
+        <div class="stat-box orb-box">
+          <div class="stat-label">JP BALLS</div>
+          <div class="orb-indicators" id="orb-indicators">
+            <span class="orb-slot slot-0">●</span>
+            <span class="orb-slot slot-1">●</span>
+            <span class="orb-slot slot-2">●</span>
+          </div>
+          <div class="stat-sub">3個でクルーン突入</div>
+        </div>
+
+        <!-- Fever Gauge Box -->
+        <div class="stat-box fever-box" id="fever-box">
+          <div class="stat-label">FEVER GAUGE</div>
+          <div class="fever-bar-container">
+            <div id="fever-bar" class="fever-bar" style="width: 0%;"></div>
+            <span id="fever-count-text" class="fever-count-text">0 / 10</span>
+          </div>
+          <div id="fever-timer-text" class="fever-sub">ハズレ蓄積で全防御!</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Digital Roulette / Slot UI (Center-Top Overlay) -->
+    <div id="roulette-container">
+      <div class="stock-container">
+        <div class="stock-label">CHUCKER STOCK</div>
+        <div id="stock-lamps" class="stock-lamps">
+          <span class="stock-dot"></span><span class="stock-dot"></span>
+          <span class="stock-dot"></span><span class="stock-dot"></span>
+          <span class="stock-dot"></span><span class="stock-dot"></span>
+          <span class="stock-dot"></span><span class="stock-dot"></span>
+        </div>
+      </div>
+
+      <div class="roulette-frame" id="roulette-frame">
+        <div class="reels-window">
+          <div class="reel" id="reel-1"><div class="reel-symbol">7</div></div>
+          <div class="reel" id="reel-2"><div class="reel-symbol">7</div></div>
+          <div class="reel" id="reel-3"><div class="reel-symbol">7</div></div>
+        </div>
+        <div id="roulette-result-msg" class="roulette-msg">チャッカーを狙え！</div>
+      </div>
+    </div>
+
+    <!-- Multiplier Gate HUD Badge -->
+    <div id="gate-badge" class="gate-badge">
+      <span class="badge-icon">🎯</span>
+      <span class="badge-text">2x GATE ACTIVE</span>
+    </div>
+
+    <!-- Notification Toast / Big Center Alert -->
+    <div id="alert-banner" class="alert-banner hidden">
+      <div id="alert-title" class="alert-title">FEVER TIME!</div>
+      <div id="alert-desc" class="alert-desc">サイド壁上昇！ロスト率0%！</div>
+    </div>
+
+    <!-- Croun JP Challenge Cinematic Overlay -->
+    <div id="croun-overlay" class="croun-overlay hidden">
+      <div class="croun-header">
+        <div class="croun-tag">★ JACKPOT CHALLENGE ★</div>
+        <div class="croun-title">物理クルーン抽選</div>
+      </div>
+      <div class="croun-legend">
+        <span class="legend-item blue">🟦 50枚 (3穴)</span>
+        <span class="legend-item yellow">🟨 100枚+タワー (2穴)</span>
+        <span class="legend-item rainbow">🌈 GRAND JACKPOT (1穴)</span>
+      </div>
+      <div id="croun-status" class="croun-status">鉄球投入中...</div>
+    </div>
+
+    <!-- Bottom Controls & Swipe Area -->
+    <footer id="bottom-controls">
+      <!-- Shooter Angle Aim Track -->
+      <div class="aim-track-container" id="aim-container">
+        <div class="aim-hint">◀ スワイプで投下位置調整 / タップまたは長押し連射 ▶</div>
+        <div class="aim-track">
+          <div id="aim-needle" class="aim-needle">▼</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div class="controls-row">
+        <!-- Shake (Tilt) Button -->
+        <button id="btn-shake" class="action-btn btn-shake" title="台を前方へ揺らす (3分クールタイム)">
+          <span class="btn-icon">💥</span>
+          <span class="btn-main">台揺らし</span>
+          <span id="shake-cooldown" class="btn-sub">READY</span>
+        </button>
+
+        <!-- Main Insert / Rapid Drop Button -->
+        <button id="btn-drop" class="action-btn btn-drop">
+          <span class="btn-drop-glow"></span>
+          <span class="btn-drop-content">
+            <span class="btn-drop-title">メダル投入</span>
+            <span class="btn-drop-sub">長押しオート連射</span>
+          </span>
+        </button>
+
+        <!-- Side Utilities (Audio, Tower Summon, Reset) -->
+        <div class="side-utils">
+          <button id="btn-sound" class="util-btn" title="サウンド切り替え">🔊</button>
+          <button id="btn-add-credits" class="util-btn" title="メダル補充 (+50枚)">🪙+50</button>
+          <button id="btn-tower" class="util-btn" title="タワー召喚テスト">🏰</button>
+          <button id="btn-help" class="util-btn" title="ヘルプ / 仕様書">❓</button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Tilt Warning Overlay -->
+    <div id="tilt-screen" class="tilt-screen hidden">
+      <div class="tilt-card">
+        <div class="tilt-icon">⚠️</div>
+        <div class="tilt-title">TILT! 操作ロック</div>
+        <div class="tilt-desc">台を激しく揺らしすぎました！<br>ペナルティ解除までお待ちください。</div>
+        <div id="tilt-timer" class="tilt-timer">5.0s</div>
+      </div>
+    </div>
+
+    <!-- Help / Spec Modal -->
+    <div id="help-modal" class="help-modal hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>ゲーム仕様・遊び方</h2>
+          <button id="modal-close" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <section>
+            <h3>🎯 遊び方の基本</h3>
+            <p>画面下部のスワイプでメダル投入の左右照準を調整し、タップまたは長押しでメダルを連続投入します。プッシャー板が前後に往復し、メダルを手前の獲得口へ押し出します。</p>
+          </section>
+          <section>
+            <h3>🎰 2段階抽選システム</h3>
+            <ul>
+              <li><strong>第1段階（デジタルルーレット）</strong>: フィールド中央手前のチャッカーに入賞すると回転（最大8保留）。</li>
+              <li>💀 <strong>ハズレ (45%)</strong>: フィーバーゲージ蓄積（10回でフィーバー発動！）</li>
+              <li>🪙 <strong>小当たり (30%)</strong>: メダル15枚払い出し</li>
+              <li>🔮 <strong>ボール出現 (15%)</strong>: フィールドにカラーボール投下</li>
+              <li>🔥 <strong>JPチャレンジ突入 (10%)</strong>: 物理クルーン抽選へ直撃！</li>
+            </ul>
+          </section>
+          <section>
+            <h3>🔮 カラーボール ＆ 物理クルーン</h3>
+            <p>カラーボールを3個手前に落とすか、ルーレットのJPチャレンジ当選で<strong>第2段階「物理クルーン抽選」</strong>へ突入！</p>
+            <ul>
+              <li>🟦 50枚払い出し (3穴)</li>
+              <li>🟨 100枚払い出し ＋ 🏰 50枚メダルタワー召喚 (2穴)</li>
+              <li>🌈 <strong>GRAND JACKPOT</strong> (1穴 1/6): 蓄積されたJPメダルを一撃大瀑布放出！</li>
+            </ul>
+          </section>
+          <section>
+            <h3>🔥 フィーバータイム (45秒間)</h3>
+            <p>ハズレが10回たまると自動発動。左右の穴から金色のガード壁がせり上がり、<strong>メダルロスト率が完全0%</strong>に！さらにプッシャーが<strong>2倍速</strong>に加速！</p>
+          </section>
+          <section>
+            <h3>🎯 動く×2倍ゲート</h3>
+            <p>上部を左右に往復する×2倍ゲートを狙ってメダルを投入すると、通過したメダルが<strong>物理的に2枚に分裂</strong>します！</p>
+          </section>
+          <section>
+            <h3>💥 台揺らし（シェイク）</h3>
+            <p>3分に1回使用可能。フィールド全体に衝撃を与えて手前の山を崩します。連続使用するとTILTペナルティで操作ロックになります。</p>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

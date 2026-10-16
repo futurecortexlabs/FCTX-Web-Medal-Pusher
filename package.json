@@ -1,0 +1,26 @@
+{
+  "name": "fctx-web-medal-pusher",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "bugs": {
+    "url": "https://github.com/futurecortexlabs/FCTX-Web-Medal-Pusher/issues"
+  },
+  "homepage": "https://github.com/futurecortexlabs/FCTX-Web-Medal-Pusher#readme",
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.21.0",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/three": "^0.186.0",
+    "canvas-confetti": "^1.9.4",
+    "three": "^0.186.1"
+  }
+}
