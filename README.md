@@ -1,76 +1,126 @@
-# GRAND FORTUNE PUSHER (進化版Webブラウザ型メダルプッシャーゲーム)
+<h1 align="center">GRAND FORTUNE PUSHER</h1>
 
-本プロジェクトは、**『Webブラウザ型メダルプッシャーゲーム企画・システム仕様書（進化版）』(DOC-MP-EV-02)** に完全準拠して実装された、アーケード大型筐体（『フォーチュントリニティ』等）の興奮と快感をブラウザ上で完全再現した本格メダルプッシャーゲームです。
+<p align="center">
+  <b>English</b> · <a href="README.ja.md">日本語</a>
+</p>
 
----
+<p align="center">
+  <b>Authentic Arcade-Grade 3D Medal Pusher Game in the Web Browser.<br>
+  Built with Three.js & Rapier3D (WASM 60Hz Physics) — Complete Implementation of Specification [DOC-MP-EV-02].</b>
+</p>
 
-## 🌟 実装コア機能・ギミック一覧
-
-### 1. 2段階抽選・物理クルーン ＆ プログレッシブJP
-- **第1段階：デジタルルーレット (デジタルスロット)**
-  - フィールド手前中央のチャッカー入賞で毎回転動（最大保留 8個）
-  - 確率配分（仕様書準拠）：
-    - 💀 **ハズレ (45%)**: フィーバーゲージ +1
-    - 🪙 **小当たり15枚 (30%)**: メダル15枚払い出し
-    - 🔮 **ボール出現 (15%)**: フィールドにカラーボール投下
-    - 🔥 **JPチャレンジ突入 (10%)**: 第2段階物理クルーン抽選へ直撃！
-- **第2段階：立体クルーン抽選（物理抽選）**
-  - 突入契機：カラーボール3個獲得 または ルーレットでJPチャレンジ当選
-  - 上空特設ステージのすり鉢状クルーンへカメラがダイナミックにフォーカス！
-  - リアルな物理演算鉄球が遠心力で旋回し、6つの穴へ吸い込まれる緊張の物理抽選
-    - 🟦 **50枚払い出し (3穴)**
-    - 🟨 **100枚払い出し ＋ 🏰 50枚メダルタワー召喚 (2穴)**
-    - 🌈 **GRAND JACKPOT (1穴 1/6)**：蓄積されたJPメダルを一撃大瀑布放出！
-- **📈 プログレッシブJPカウンター**
-  - 左右のサイド穴へのメダル没収時、1枚につき **+0.5枚** をリアルタイム蓄積（初期値: 300.0枚）
-  - 当選時に大量メダルの大瀑布、ゴールドフラッシュ、紙吹雪 (Confetti) 演出！
-
-### 2. 破壊と快感の大連鎖ギミック
-- **🔮 高重量カラーボール**:
-  - 質量 4.5kg（仕様書準拠）、反発 0.15 / 摩擦 0.30。
-  - 通常メダルをゴリゴリ押し分けて進む巨大球体。3個手前に落とすとクルーン突入！
-- **🏰 50枚メダルタワー崩壊**:
-  - 総重量 50.0kg（仕様書準拠）、反発 0.02 / 摩擦 0.60。
-  - 50枚の垂直スタックタワーを召喚。プッシャーで奥から押し出され、重心崩壊で一気にガシャーンと雪崩れる快感を完全再現！
-
-### 3. フィーバーモード ＆ サイド完全ガード壁
-- **🔥 フィーバータイム (45秒間)**:
-  - ハズレ10回蓄積（ゲージMAX）で自動発動。
-  - 左右のサイド穴から金色のフェンス（Kinematic）が物理的にせり上がり、**メダルロスト率 0%**！
-  - プッシャーの往復スピードが **通常の2倍速** にアップ！
-  - トランス調BGMがループ再生され、お祭り状態に突入！
-
-### 4. 動く×2倍ゲート（技術介入要素）
-- 釘エリア中腹を左右に往復する可動ゲート。
-- タイミングを合わせて通過させると、メダルが **物理的に2枚に分裂**（+1枚スポーン）！
-
-### 5. 戦略的「台揺らし（シェイク）」
-- 3分に1回使用可能。
-- フィールド全体へ前方への衝撃インパルスを付与し、手前の山を崩す！
-- 連打ペナルティ：短時間に連打すると警告音とともに **TILT（操作ロック）** が発動！
-
-### 6. オーディオ ＆ 永続化
-- **Web Audio API シンセサイザー**: 外部アセット不要。コイン衝突音、チャッカー音、ファンファーレ、トランスBGMなどを忠実にプロシージャル生成。
-- **LocalStorage 5秒自動セーブ**: メダル所持数、JPカウンター、フィーバーゲージ、ボール数を自動保持。
+<p align="center">
+  <a href="https://futurecortexlabs.github.io/FCTX-Web-Medal-Pusher/"><b>▶ Play in Browser</b></a>
+  &nbsp;·&nbsp;
+  <a href="#core-mechanics">Core Mechanics</a>
+  &nbsp;·&nbsp;
+  <a href="#controls">Controls</a>
+  &nbsp;·&nbsp;
+  <a href="#two-stage-lottery--jackpot">Lottery & JP</a>
+  &nbsp;·&nbsp;
+  <a href="#physics--tuning">Physics Tuning</a>
+</p>
 
 ---
 
-## 🎮 操作方法
+## Overview
 
-| 操作 | PC (マウス / キーボード) | スマートフォン (タッチ) |
+**GRAND FORTUNE PUSHER** brings the immersive thrills of large-scale arcade coin pushers (e.g., *Fortune Trinity*) directly into your web browser. Featuring a real-time **Progressive Jackpot**, dynamic **50-Coin Medal Tower avalanches**, high-mass **Crystal Color Balls**, a 45-second **Fever Mode with 100% Side-Wall Defense**, moving **2x Multiplier Gates**, strategic **Machine Tilt/Shake**, and a **2-Stage Physical Croun Roulette**.
+
+All visual effects, sound synthesizers, and physics steps run locally with zero external network asset dependencies.
+
+---
+
+## Core Mechanics
+
+| Mechanic | Trigger / Condition | Player Experience & Role |
 | :--- | :--- | :--- |
-| **照準調整 (左右)** | 下部トラックをドラッグ / A・Dキー / 左右矢印 | 下部トラックをスワイプ / 画面タップ |
-| **メダル投入** | 「メダル投入」ボタン長押し / スペースキー / 画面クリック | 「メダル投入」ボタン長押し / タップ |
-| **台揺らし (シェイク)** | 「台揺らし」ボタン / Sキー | 「台揺らし」ボタン |
-| **サウンド切替** | 「🔊」ボタン | 「🔊」ボタン |
-| **メダル補充 (+50)** | 「🪙+50」ボタン | 「🪙+50」ボタン |
-| **タワー召喚テスト** | 「🏰」ボタン | 「🏰」ボタン |
+| 🔮 **Color Ball Drop** | Digital Roulette Ball win (15%) | Drops an oversized, high-mass crystal sphere onto the playfield. Pushing 3 balls off the front edge directly triggers the **Physical Croun Jackpot Challenge**. |
+| 🏰 **Medal Tower Collapse** | Roulette Tower square / Croun Yellow Pocket | Summons a majestic castle of 50 vertically-stacked coins. The pusher pushes it from behind until its center of mass collapses in a thrilling avalanche. |
+| 📈 **Progressive Jackpot** | Real-time side gutter losses | Every medal confiscated by the left/right gutters adds **+0.5 medals** in real-time to the Grand Jackpot counter (Base: 300.0). Winning the JP unleashes a massive waterfall of coins! |
+| 🔥 **Fever Time** | 10 Misses accumulated (Gauge MAX) | Golden fences rise from the side gutters for **45 seconds**, reducing medal loss to **0%**. Pusher cycle speed accelerates to **2×**, accompanied by an upbeat trance soundtrack. |
+| 🎯 **Moving 2x Gate** | Mechanical timing obstacle | An oscillating gate moves horizontally mid-field. Timing drops to shoot medals through the gate causes them to **physically split into 2 medals (+1 bonus spawn)**. |
+| 💥 **Machine Shake (Tilt)** | 3-minute cooldown action | Applies a forward impulse vector across the playfield to dislodge coins on the edge. Repeated rapid shaking triggers a loud alarm and a temporary **TILT lock penalty**. |
 
 ---
 
-## 🛠 技術スタック
-- **Frontend / Build**: Vite, TypeScript, HTML5 / CSS3
-- **3D Graphics Engine**: Three.js (InstancedMesh, PBR Shading, Dynamic Lighting, Particle System)
-- **Physics Engine**: @dimforge/rapier3d-compat (WASM 60Hz Step, Kinematic Bodies, Sensors)
-- **Audio Engine**: Web Audio API (Procedural Arcade Sound FX & Trance BGM)
-- **Effects**: canvas-confetti, Camera Shake, Screen Tilt Shaders
+## Controls
+
+Supports desktop mouse/keyboard and mobile touch swipe / continuous rapid fire.
+
+| Action | Desktop (Mouse / Keyboard) | Smartphone (Touch) |
+| :--- | :--- | :--- |
+| **Aim Shooter (X-Axis)** | Drag bottom aim track / `A` & `D` / Arrow Keys | Swipe bottom aim track / Tap screen position |
+| **Drop Medal** | Hold "メダル投入" Button / `Space` / Click Canvas | Hold "メダル投入" Button / Tap Canvas |
+| **Rapid Auto-Fire** | Press and hold drop button | Press and hold drop button |
+| **Table Shake (Tilt)** | "台揺らし" Button / `S` Key | "台揺らし" Button |
+| **Audio Toggle** | Click `🔊` Button | Tap `🔊` Button |
+| **Replenish Medals** | Click `🪙+50` Button | Tap `🪙+50` Button |
+| **Tower Summon Test** | Click `🏰` Button | Tap `🏰` Button |
+
+---
+
+## Two-Stage Lottery & Progressive Jackpot
+
+```
+[Stage 1] Digital Roulette (Center Chucker Sensor, Max 8 Stock)
+  ├── 💀 Miss (45%)             ➔ Fever Gauge +1 (10 Misses = Fever Mode!)
+  ├── 🪙 Small Win 15 (25%)     ➔ 15 Medals Payout
+  ├── 🏰 Tower Summon (5%)      ➔ 50-Coin Tower Summoned on Field
+  ├── 🔮 Ball Drop (15%)        ➔ 1 Crystal Color Ball Dropped
+  └── 🔥 JP Challenge (10%)     ➔ Direct Entry to Stage 2 Physical Croun!
+
+[Stage 2] Physical Croun Roulette (Triggered by 3 Balls OR 10% Roulette Win)
+  ├── 🟦 50 Medals (3 Pockets - 50%)
+  ├── 🟨 100 Medals + 🏰 Tower (2 Pockets - 33.3%)
+  └── 🌈 GRAND JACKPOT (1 Pocket - 16.7%) ➔ Full progressive payout & coin waterfall!
+```
+
+---
+
+## Physics & Advanced Object Tuning
+
+All rigid bodies and colliders are tuned to specification `DOC-MP-EV-02` using Rapier3D:
+
+| Object | Mass | Restitution / Friction | Special Behavior & Logic |
+| :--- | :--- | :--- | :--- |
+| **Standard Medal** | 1.0 kg | Restitution 0.05 / Friction 0.50 | Rendered efficiently via `THREE.InstancedMesh`. High performance for hundreds of simultaneous coins. |
+| **Color Ball** | 4.5 kg | Restitution 0.15 / Friction 0.30 | Oversized transparent crystal sphere with inner emissive core. Plows through surrounding coins. |
+| **Medal Tower** | 50.0 kg (Total) | Restitution 0.02 / Friction 0.60 | 50 cylinder stack spawned in sleeping state. Instantly collapses into an avalanche once pusher makes contact. |
+| **Pusher Plate** | Kinematic | Top Friction 0.85 | Oscillates smoothly via sine wave; forward stroke powerfully pushes medals forward. Speeds up 2× in Fever mode. |
+| **Fever Side Walls** | Kinematic | Restitution 0.10 | Rises from below playfield to Y=0.45 during Fever mode, physically blocking side drop losses. |
+| **Moving 2x Gate** | Sensor | Non-physical trigger | Sensor crossing trigger; instantaneously clones passing coin with forward trajectory. |
+
+---
+
+## Sound & LocalStorage Persistence
+
+- **Synthesized Web Audio Engine**: Zero MP3/WAV downloads required. Procedural sound synthesis generates authentic arcade clicks, metallic coin clinks, fanfare chimes, chucker chimes, and trance Fever BGM.
+- **Continuous 5-Second Auto-Save**: Player credit balance, progressive jackpot counter, fever gauge count, collected balls, and **exact coordinates of all field coins and balls** are automatically stored in `localStorage` and restored on reload.
+
+---
+
+## Local Development
+
+```bash
+# Clone the repository
+git clone https://github.com/futurecortexlabs/FCTX-Web-Medal-Pusher.git
+cd FCTX-Web-Medal-Pusher
+
+# Install dependencies
+npm install
+
+# Start local dev server (default: http://localhost:3000)
+npm run dev
+
+# Run production build & verify
+npm run build
+npm run preview
+```
+
+---
+
+## License & Reference
+
+- **Document Specification**: `DOC-MP-EV-02` (Web-Browser Medal Pusher Game Specification - Evolution Edition)
+- **Engine Stack**: Three.js, `@dimforge/rapier3d-compat`, TypeScript, Vite
