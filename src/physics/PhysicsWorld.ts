@@ -66,6 +66,8 @@ export class PhysicsWorld {
   public crounBall: CrounBallInstance | null = null;
   public isCrounActive = false;
   public crounTimer = 0;
+  public crounWinner: CrounPocket | null = null;
+  public crounLockTimer = 0;
 
   // Event callbacks
   public onPayoutCoin: ((count: number) => void) | null = null;
@@ -73,6 +75,7 @@ export class PhysicsWorld {
   public onChuckerHit: (() => void) | null = null;
   public onGateHit: ((pos: { x: number; y: number; z: number }) => void) | null = null;
   public onBallPayout: (() => void) | null = null;
+  public onCrounLockIn: ((type: '50' | '100_tower' | 'jp', pocketIndex: number) => void) | null = null;
   public onCrounResult: ((type: '50' | '100_tower' | 'jp') => void) | null = null;
 
   public async init() {
@@ -191,59 +194,63 @@ export class PhysicsWorld {
   }
 
   /**
-   * Croun Bowl & 6 Pockets (Continuous Trimesh Concave Bowl)
+   * Croun Bowl & 6 Pockets (Funnel, 6 Depressed Physical Cups, & Center Spindle)
    */
   private createCroun() {
     const c = this.crounCenter;
     const segments = 32;
     const rOuter = 2.4;
+    const yWall = 1.20;
     const yOuter = 0.70;
-    const rPockets = 0.85;
-    const yPockets = 0.05;
+    const rMid = 1.10;
+    const yMid = 0.15;
     const rCenter = 0.55;
-    const yCenter = 0.40;
+    const yCenterBase = 0.10;
+    const yApex = 0.45;
 
     const vertices: number[] = [];
     const indices: number[] = [];
 
-    // Ring vertices around Croun center (0, y, 0 relative to body at c)
+    // 1. Outer Wall & Funnel Slope
     for (let i = 0; i <= segments; i++) {
       const angle = (i / segments) * Math.PI * 2;
       const cos = Math.cos(angle);
       const sin = Math.sin(angle);
-      // V0: Outer rim vertical wall top
-      vertices.push(cos * rOuter, yOuter + 0.50, sin * rOuter);
-      // V1: Outer rim sloped bowl top
+      // V0: Outer wall top
+      vertices.push(cos * rOuter, yWall, sin * rOuter);
+      // V1: Funnel top
       vertices.push(cos * rOuter, yOuter, sin * rOuter);
-      // V2: Pocket ring floor
-      vertices.push(cos * rPockets, yPockets, sin * rPockets);
-      // V3: Center spindle base
-      vertices.push(cos * rCenter, yPockets, sin * rCenter);
+      // V2: Funnel bottom / pocket rim
+      vertices.push(cos * rMid, yMid, sin * rMid);
     }
-    // Apex of center spindle
-    const apexIdx = (segments + 1) * 4;
-    vertices.push(0, yCenter, 0);
 
     for (let i = 0; i < segments; i++) {
-      const b = i * 4;
-      const n = (i + 1) * 4;
-      // Outer rim vertical wall
+      const b = i * 3;
+      const n = (i + 1) * 3;
       indices.push(b + 0, b + 1, n + 1);
       indices.push(b + 0, n + 1, n + 0);
-      // Sloped bowl surface
       indices.push(b + 1, b + 2, n + 2);
       indices.push(b + 1, n + 2, n + 1);
-      // Pocket floor track
-      indices.push(b + 2, b + 3, n + 3);
-      indices.push(b + 2, n + 3, n + 2);
-      // Center spindle cone
-      indices.push(b + 3, apexIdx, n + 3);
+    }
+
+    // 2. Central Spindle Cone
+    const coneStartIdx = vertices.length / 3;
+    const apexIdx = coneStartIdx;
+    vertices.push(0, yApex, 0); // Apex
+
+    for (let i = 0; i <= segments; i++) {
+      const angle = (i / segments) * Math.PI * 2;
+      vertices.push(Math.cos(angle) * rCenter, yCenterBase, Math.sin(angle) * rCenter);
+    }
+
+    for (let i = 0; i < segments; i++) {
+      indices.push(apexIdx, coneStartIdx + 1 + i, coneStartIdx + 1 + i + 1);
     }
 
     const vArray = new Float32Array(vertices);
     const iArray = new Uint32Array(indices);
     const bowlBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(c.x, c.y, c.z));
-    const colDesc = RAPIER.ColliderDesc.trimesh(vArray, iArray).setFriction(0.12).setRestitution(0.25);
+    const colDesc = RAPIER.ColliderDesc.trimesh(vArray, iArray).setFriction(0.12).setRestitution(0.20);
     this.world.createCollider(colDesc, bowlBody);
 
     // 6 Pockets configuration:
@@ -259,20 +266,38 @@ export class PhysicsWorld {
       '50',        // 5: Blue
     ];
 
+    const rPocket = 0.85;
     this.crounPockets = [];
     for (let i = 0; i < 6; i++) {
       const angle = (i / 6) * Math.PI * 2;
-      const px = c.x + Math.cos(angle) * rPockets;
-      const py = c.y + yPockets;
-      const pz = c.z + Math.sin(angle) * rPockets;
+      const px = c.x + Math.cos(angle) * rPocket;
+      const pz = c.z + Math.sin(angle) * rPocket;
 
-      const pBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(px, py, pz));
-      const col = this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.24, 0.20, 0.24).setSensor(true), pBody);
+      // 3. Physical Recessed Cup Floor (depth Y = c.y - 0.22, ball drops into hole!)
+      const cupFloorBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(px, c.y - 0.22, pz));
+      this.world.createCollider(RAPIER.ColliderDesc.cylinder(0.04, 0.25).setFriction(0.4).setRestitution(0.1), cupFloorBody);
+
+      // 4. Physical Divider Wedges between adjacent pockets
+      const divAngle = (i + 0.5) * (Math.PI * 2 / 6);
+      const dx = c.x + Math.cos(divAngle) * rPocket;
+      const dz = c.z + Math.sin(divAngle) * rPocket;
+      const dividerBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(dx, c.y + 0.08, dz));
+      this.world.createCollider(
+        RAPIER.ColliderDesc.cuboid(0.06, 0.16, 0.24)
+          .setRotation({ x: 0, y: Math.sin(divAngle / 2), z: 0, w: Math.cos(divAngle / 2) })
+          .setFriction(0.2)
+          .setRestitution(0.3),
+        dividerBody
+      );
+
+      // 5. Pocket Detection Sensor (Inside the cup hole)
+      const pBody = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(px, c.y - 0.05, pz));
+      const col = this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.24, 0.18, 0.24).setSensor(true), pBody);
 
       this.crounPockets.push({
         index: i,
         type: pocketTypes[i],
-        position: { x: px, y: py, z: pz },
+        position: { x: px, y: c.y - 0.05, z: pz },
         collider: col,
       });
     }
@@ -507,6 +532,8 @@ export class PhysicsWorld {
     if (!this.isInitialized) return;
     this.isCrounActive = true;
     this.crounTimer = 0;
+    this.crounWinner = null;
+    this.crounLockTimer = 0;
 
     // Remove previous ball if any
     if (this.crounBall) {
@@ -630,44 +657,63 @@ export class PhysicsWorld {
       const vel = this.crounBall.body.linvel();
       const speed = Math.hypot(vel.x, vel.y, vel.z);
 
-      let winnerPocket: CrounPocket | null = null;
-
-      // 7a. Natural pocket collision check
-      for (const pocket of this.crounPockets) {
-        const dist = Math.hypot(bPos.x - pocket.position.x, bPos.z - pocket.position.z);
-        if (dist < 0.26 && bPos.y <= pocket.position.y + 0.28 && speed < 2.0) {
-          winnerPocket = pocket;
-          break;
-        }
-      }
-
-      // 7b. Settled or timeout safety check (roulette completes naturally in 3-6s)
-      if (!winnerPocket && (this.crounTimer > 7.0 || (this.crounTimer > 3.0 && speed < 0.35))) {
-        let minDist = 999;
+      if (!this.crounWinner) {
+        // 7a. Natural pocket collision check:
+        // Ball drops down into the hollow cup (depth Y <= pocket.y + 0.22, distance < 0.28, settled speed < 2.2)
         for (const pocket of this.crounPockets) {
           const dist = Math.hypot(bPos.x - pocket.position.x, bPos.z - pocket.position.z);
-          if (dist < minDist) {
-            minDist = dist;
-            winnerPocket = pocket;
+          if (dist < 0.28 && bPos.y <= pocket.position.y + 0.22 && speed < 2.2) {
+            this.crounWinner = pocket;
+            this.crounLockTimer = 2.4;
+            if (this.onCrounLockIn) {
+              this.onCrounLockIn(pocket.type, pocket.index);
+            }
+            break;
           }
         }
-      }
 
-      // 7c. Fallback if ball somehow escapes
-      if (!winnerPocket && bPos.y < this.crounCenter.y - 1.5) {
-        winnerPocket = this.crounPockets[Math.floor(Math.random() * this.crounPockets.length)];
-      }
-
-      if (winnerPocket) {
-        const resultType = winnerPocket.type;
-        this.isCrounActive = false;
-        if (this.crounBall) {
-          try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
-          try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
-          this.crounBall = null;
+        // 7b. Settled or timeout safety check (roulette completes naturally in 4-8s)
+        if (!this.crounWinner && (this.crounTimer > 8.0 || (this.crounTimer > 3.5 && speed < 0.30))) {
+          let minDist = 999;
+          let closestPocket = this.crounPockets[0];
+          for (const pocket of this.crounPockets) {
+            const dist = Math.hypot(bPos.x - pocket.position.x, bPos.z - pocket.position.z);
+            if (dist < minDist) {
+              minDist = dist;
+              closestPocket = pocket;
+            }
+          }
+          this.crounWinner = closestPocket;
+          this.crounLockTimer = 2.4;
+          if (this.onCrounLockIn) {
+            this.onCrounLockIn(closestPocket.type, closestPocket.index);
+          }
         }
-        if (this.onCrounResult) {
-          this.onCrounResult(resultType);
+
+        // 7c. Fallback if ball somehow escapes
+        if (!this.crounWinner && bPos.y < this.crounCenter.y - 1.5) {
+          const randomPocket = this.crounPockets[Math.floor(Math.random() * this.crounPockets.length)];
+          this.crounWinner = randomPocket;
+          this.crounLockTimer = 2.4;
+          if (this.onCrounLockIn) {
+            this.onCrounLockIn(randomPocket.type, randomPocket.index);
+          }
+        }
+      } else {
+        // Winner is locked in! The ball visibly rests and settles inside the pocket cup!
+        this.crounLockTimer -= dt;
+        if (this.crounLockTimer <= 0) {
+          const resultType = this.crounWinner.type;
+          this.isCrounActive = false;
+          if (this.crounBall) {
+            try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
+            try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
+            this.crounBall = null;
+          }
+          this.crounWinner = null;
+          if (this.onCrounResult) {
+            this.onCrounResult(resultType);
+          }
         }
       }
     }

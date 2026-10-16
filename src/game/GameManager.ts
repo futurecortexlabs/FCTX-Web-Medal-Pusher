@@ -162,7 +162,10 @@ export class GameManager {
       }
     };
 
-    // 6. Croun Result
+    // 6. Croun Events
+    this.physics.onCrounLockIn = (type, pocketIndex) => {
+      this.handleCrounLockIn(type, pocketIndex);
+    };
     this.physics.onCrounResult = type => {
       this.handleCrounResult(type);
     };
@@ -261,6 +264,7 @@ export class GameManager {
   public triggerCrounChallenge(cause: string) {
     if (this.physics.isCrounActive) return;
 
+    this.renderer.setWinningPocket(null);
     this.renderer.setCrounCamera(true);
     this.elCrounOverlay.classList.remove('hidden');
     this.elCrounStatus.textContent = `${cause} 物理クルーン抽選中...`;
@@ -269,6 +273,18 @@ export class GameManager {
     setTimeout(() => {
       this.physics.launchCrounBall();
     }, 1500);
+  }
+
+  private handleCrounLockIn(type: '50' | '100_tower' | 'jp', pocketIndex: number) {
+    this.renderer.setWinningPocket(pocketIndex);
+    this.sound.playRouletteWin();
+    if (type === 'jp') {
+      this.elCrounStatus.textContent = '🎯【GRAND JACKPOT】入賞確定！';
+    } else if (type === '100_tower') {
+      this.elCrounStatus.textContent = '🎯【100枚 ＋ 🏰 50枚タワー】入賞確定！';
+    } else {
+      this.elCrounStatus.textContent = '🎯【50枚】入賞確定！';
+    }
   }
 
   private handleCrounResult(type: '50' | '100_tower' | 'jp') {
@@ -320,10 +336,11 @@ export class GameManager {
       }
     }
 
-    // Return to main playfield after 3.5s
+    // Return to main playfield after 3.8s
     setTimeout(() => {
       this.elCrounOverlay.classList.add('hidden');
       this.renderer.setCrounCamera(false);
+      this.renderer.setWinningPocket(null);
       this.updateHUD();
     }, 3800);
   }

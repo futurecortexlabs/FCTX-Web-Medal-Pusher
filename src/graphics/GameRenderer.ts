@@ -33,6 +33,18 @@ export class GameRenderer {
   private chuckerMesh!: THREE.Mesh;
   private crounGroup!: THREE.Group;
   private shooterGuideMesh!: THREE.Mesh;
+  private crounPocketRings: THREE.Mesh[] = [];
+  private crounPocketFloors: THREE.Mesh[] = [];
+  private crounPocketColors: number[] = [
+    0xff00ff, // 0: GRAND JACKPOT Rainbow
+    0xfbbf24, // 1: 100+Tower Yellow
+    0x38bdf8, // 2: 50 Blue
+    0x38bdf8, // 3: 50 Blue
+    0xfbbf24, // 4: 100+Tower Yellow
+    0x38bdf8, // 5: 50 Blue
+  ];
+  private winningPocketIndex: number | null = null;
+  private crounAnimTime = 0;
 
   // Camera animation: positioned closer and wider for an immersive full-screen arcade perspective
   private targetCameraPos = new THREE.Vector3(0, 3.3, 2.1);
@@ -327,8 +339,8 @@ export class GameRenderer {
     rimWall.position.set(0, 0.95, 0);
     this.crounGroup.add(rimWall);
 
-    // 2. Sloped Bowl Surface (Radius 2.4 at Y=0.70 down to radius 0.85 at Y=0.05)
-    const bowlGeo = new THREE.CylinderGeometry(2.4, 0.85, 0.65, 36, 1, true);
+    // 2. Sloped Funnel Bowl Surface (Radius 2.4 at Y=0.70 down to radius 1.10 at Y=0.15)
+    const bowlGeo = new THREE.CylinderGeometry(2.4, 1.10, 0.55, 36, 1, true);
     const bowlMat = new THREE.MeshStandardMaterial({
       color: 0x381f5c,
       metalness: 0.35,
@@ -336,21 +348,21 @@ export class GameRenderer {
       side: THREE.DoubleSide,
     });
     const bowl = new THREE.Mesh(bowlGeo, bowlMat);
-    bowl.position.set(0, 0.375, 0);
+    bowl.position.set(0, 0.425, 0);
     this.crounGroup.add(bowl);
 
-    // 3. Pocket Floor Track (Radius 0.85 to 0.55 at Y = 0.05)
-    const trackGeo = new THREE.CylinderGeometry(0.85, 0.55, 0.04, 36, 1, false);
-    const trackMat = new THREE.MeshStandardMaterial({
-      color: 0x24123d,
-      roughness: 0.4,
+    // 3. Decorative Under-Floor Base (Below cup bottoms, at Y = -0.23)
+    const underFloorGeo = new THREE.CylinderGeometry(1.15, 0.55, 0.02, 36, 1, false);
+    const underFloorMat = new THREE.MeshStandardMaterial({
+      color: 0x120c1f,
+      roughness: 0.6,
       metalness: 0.2,
     });
-    const track = new THREE.Mesh(trackGeo, trackMat);
-    track.position.set(0, 0.03, 0);
-    this.crounGroup.add(track);
+    const underFloor = new THREE.Mesh(underFloorGeo, underFloorMat);
+    underFloor.position.set(0, -0.23, 0);
+    this.crounGroup.add(underFloor);
 
-    // 4. Central Golden Spindle Cone (Radius 0.55, apex at Y=0.40)
+    // 4. Central Golden Spindle Cone (Radius 0.55, base at Y=0.10, apex at Y=0.45)
     const spindleGeo = new THREE.ConeGeometry(0.55, 0.35, 36);
     const spindleMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
@@ -360,14 +372,14 @@ export class GameRenderer {
       emissiveIntensity: 0.6,
     });
     const spindle = new THREE.Mesh(spindleGeo, spindleMat);
-    spindle.position.set(0, 0.225, 0);
+    spindle.position.set(0, 0.275, 0);
     this.crounGroup.add(spindle);
 
     // Center Spindle Gem Cap (Glowing Ruby)
     const gemGeo = new THREE.SphereGeometry(0.12, 16, 16);
     const gemMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
     const gem = new THREE.Mesh(gemGeo, gemMat);
-    gem.position.set(0, 0.44, 0);
+    gem.position.set(0, 0.45, 0);
     this.crounGroup.add(gem);
 
     // 5. Golden Outer Rim & Neon LED Halo Ring (At Y = 1.20)
@@ -391,63 +403,79 @@ export class GameRenderer {
     neonStrip.position.set(0, 1.21, 0);
     this.crounGroup.add(neonStrip);
 
-    // 5. 6 Pockets with Vivid Neon Glow Rings & Illuminated Cups
-    const pocketColors = [
-      0xff00ff, // 0: GRAND JACKPOT Rainbow
-      0xfbbf24, // 1: 100+Tower Yellow
-      0x38bdf8, // 2: 50 Blue
-      0x38bdf8, // 3: 50 Blue
-      0xfbbf24, // 4: 100+Tower Yellow
-      0x38bdf8, // 5: 50 Blue
-    ];
-
+    // 6. 6 Recessed Pockets with Deep Hollow Cups, Vivid Glow Rings & Illuminations
+    this.crounPocketRings = [];
+    this.crounPocketFloors = [];
     const pocketRadius = 0.85;
+
     for (let i = 0; i < 6; i++) {
       const angle = (i / 6) * Math.PI * 2;
       const px = Math.cos(angle) * pocketRadius;
       const pz = Math.sin(angle) * pocketRadius;
 
-      // Bright glowing top ring
+      // 6a. Bright glowing neon entrance ring (At Y = 0.10)
+      const ringMat = new THREE.MeshBasicMaterial({ color: this.crounPocketColors[i] });
       const pRing = new THREE.Mesh(
-        new THREE.TorusGeometry(0.24, 0.045, 12, 28),
-        new THREE.MeshBasicMaterial({ color: pocketColors[i] })
+        new THREE.TorusGeometry(0.24, 0.038, 12, 32),
+        ringMat
       );
       pRing.rotation.x = Math.PI / 2;
-      pRing.position.set(px, 0.08, pz);
+      pRing.position.set(px, 0.10, pz);
       this.crounGroup.add(pRing);
+      this.crounPocketRings.push(pRing);
 
-      // Hole cup cylinder
-      const cup = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.22, 0.16, 0.35, 16),
-        new THREE.MeshStandardMaterial({ color: 0x181128, roughness: 0.4 })
+      // 6b. Deep hollow cup tube (Y = 0.10 down to -0.22, height = 0.32, center Y = -0.06)
+      const cupTubeGeo = new THREE.CylinderGeometry(0.24, 0.22, 0.32, 24, 1, true);
+      const cupTubeMat = new THREE.MeshStandardMaterial({
+        color: 0x18102a,
+        metalness: 0.6,
+        roughness: 0.25,
+        side: THREE.DoubleSide,
+      });
+      const cupTube = new THREE.Mesh(cupTubeGeo, cupTubeMat);
+      cupTube.position.set(px, -0.06, pz);
+      this.crounGroup.add(cupTube);
+
+      // 6c. Inner illuminated floor disk at base of cup (depth Y = -0.21)
+      const floorMat = new THREE.MeshBasicMaterial({ color: this.crounPocketColors[i] });
+      const cupFloor = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.21, 0.21, 0.02, 24),
+        floorMat
       );
-      cup.position.set(px, -0.1, pz);
-      this.crounGroup.add(cup);
+      cupFloor.position.set(px, -0.21, pz);
+      this.crounGroup.add(cupFloor);
+      this.crounPocketFloors.push(cupFloor);
 
-      // Inner glowing floor disk inside each cup
-      const cupGlow = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.18, 0.18, 0.02, 16),
-        new THREE.MeshBasicMaterial({ color: pocketColors[i] })
-      );
-      cupGlow.position.set(px, -0.06, pz);
-      this.crounGroup.add(cupGlow);
+      // 6d. Physical Golden Divider Wedges between adjacent pockets
+      const divAngle = (i + 0.5) * (Math.PI * 2 / 6);
+      const dx = Math.cos(divAngle) * pocketRadius;
+      const dz = Math.sin(divAngle) * pocketRadius;
+      const wedgeGeo = new THREE.BoxGeometry(0.10, 0.28, 0.44);
+      const wedgeMat = new THREE.MeshStandardMaterial({
+        color: 0xffd700,
+        metalness: 0.9,
+        roughness: 0.12,
+        emissive: 0x664400,
+        emissiveIntensity: 0.3,
+      });
+      const wedge = new THREE.Mesh(wedgeGeo, wedgeMat);
+      wedge.position.set(dx, 0.08, dz);
+      wedge.rotation.y = -divAngle + Math.PI / 2;
+      this.crounGroup.add(wedge);
 
-      // Divider pins between pockets (Golden pegs)
-      const dividerAngle = angle + (Math.PI / 6);
-      const dx = Math.cos(dividerAngle) * 0.95;
-      const dz = Math.sin(dividerAngle) * 0.95;
+      // Decorative top pin on wedge
       const pin = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.04, 0.04, 0.28, 12),
-        new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.9, roughness: 0.1 })
+        new THREE.CylinderGeometry(0.03, 0.03, 0.15, 12),
+        wedgeMat
       );
-      pin.position.set(dx, 0.14, dz);
+      pin.position.set(dx, 0.26, dz);
       this.crounGroup.add(pin);
     }
 
     this.scene.add(this.crounGroup);
 
-    // 6. Croun Ball Mesh (Ultra-Bright High-Contrast Luminous Sphere)
-    const crounBallGeo = new THREE.SphereGeometry(0.24, 24, 24);
+    // 7. Croun Ball Mesh (Ultra-Bright High-Contrast Luminous Sphere, R=0.22 matching physics)
+    const crounBallGeo = new THREE.SphereGeometry(0.22, 24, 24);
     const crounBallMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       emissive: 0x99ddff,
@@ -526,6 +554,20 @@ export class GameRenderer {
    */
   public triggerShake(intensity = 0.35, duration = 0.5) {
     this.shakeDuration = duration;
+  }
+
+  /**
+   * Set winning pocket to strobe/flash celebration light while ball is locked in
+   */
+  public setWinningPocket(index: number | null) {
+    this.winningPocketIndex = index;
+    if (index === null) {
+      for (let i = 0; i < this.crounPocketRings.length; i++) {
+        (this.crounPocketRings[i].material as THREE.MeshBasicMaterial).color.setHex(this.crounPocketColors[i]);
+        (this.crounPocketFloors[i].material as THREE.MeshBasicMaterial).color.setHex(this.crounPocketColors[i]);
+        this.crounPocketRings[i].scale.set(1.0, 1.0, 1.0);
+      }
+    }
   }
 
   /**
@@ -640,6 +682,25 @@ export class GameRenderer {
       this.crounBallMesh.visible = true;
     } else if (this.crounBallMesh) {
       this.crounBallMesh.visible = false;
+    }
+
+    // 5b. Update Croun Pocket Celebration Strobe
+    if (this.winningPocketIndex !== null && this.winningPocketIndex >= 0 && this.winningPocketIndex < this.crounPocketRings.length) {
+      this.crounAnimTime += dt * 9.0;
+      const flash = Math.sin(this.crounAnimTime) > 0;
+      const ring = this.crounPocketRings[this.winningPocketIndex];
+      const floor = this.crounPocketFloors[this.winningPocketIndex];
+      const origColor = this.crounPocketColors[this.winningPocketIndex];
+
+      if (flash) {
+        (ring.material as THREE.MeshBasicMaterial).color.setHex(0xffffff);
+        (floor.material as THREE.MeshBasicMaterial).color.setHex(0xffffff);
+        ring.scale.set(1.15, 1.15, 1.15);
+      } else {
+        (ring.material as THREE.MeshBasicMaterial).color.setHex(origColor);
+        (floor.material as THREE.MeshBasicMaterial).color.setHex(origColor);
+        ring.scale.set(1.0, 1.0, 1.0);
+      }
     }
 
     // 6. Update Sparkle Particles
