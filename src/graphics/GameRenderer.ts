@@ -306,7 +306,7 @@ export class GameRenderer {
   }
 
   private setupChucker() {
-    const chuckerGeo = new THREE.BoxGeometry(0.7, 0.08, 0.3);
+    const chuckerGeo = new THREE.BoxGeometry(0.32, 0.08, 0.2);
     const chuckerMat = new THREE.MeshStandardMaterial({
       color: 0x0284c7,
       emissive: 0x0369a1,

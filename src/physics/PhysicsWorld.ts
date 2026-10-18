@@ -129,7 +129,7 @@ export class PhysicsWorld {
     const lowerDeckDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.0, -0.05);
     const lowerDeckBody = this.world.createRigidBody(lowerDeckDesc);
     const lowerDeckColliderDesc = RAPIER.ColliderDesc.cuboid(1.5, 0.15, 0.85)
-      .setFriction(0.15) // Low friction for smooth sliding avalanche!
+      .setFriction(0.26) // Difficulty: medals pile up more before avalanching (was 0.15)
       .setRestitution(0.08);
     this.world.createCollider(lowerDeckColliderDesc, lowerDeckBody);
 
@@ -190,7 +190,7 @@ export class PhysicsWorld {
   private createChucker() {
     const chuckerDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.18, 0.35);
     const chuckerBody = this.world.createRigidBody(chuckerDesc);
-    const chuckerColDesc = RAPIER.ColliderDesc.cuboid(0.35, 0.12, 0.18)
+    const chuckerColDesc = RAPIER.ColliderDesc.cuboid(0.16, 0.12, 0.10)
       .setSensor(true);
     this.chuckerCollider = this.world.createCollider(chuckerColDesc, chuckerBody);
   }
@@ -644,10 +644,10 @@ export class PhysicsWorld {
       if (coin.passedGate) return;
       const pos = coin.body.translation();
       const dist = Math.hypot(pos.x - gatePos.x, pos.y - gatePos.y, pos.z - gatePos.z);
-      if (dist < 0.40) {
+      if (dist < 0.26) { // Difficulty: tighter gate window (was 0.40)
         coin.passedGate = true;
         if (this.gateCooldown <= 0) {
-          this.gateCooldown = 0.20; // 200ms debounce
+          this.gateCooldown = 0.60; // Difficulty: 600ms cooldown (was 200ms)
           if (this.onGateHit) {
             this.onGateHit({ x: pos.x, y: pos.y, z: pos.z });
           }
@@ -665,7 +665,7 @@ export class PhysicsWorld {
     this.coins.forEach(coin => {
       if (coin.hitChucker) return;
       const pos = coin.body.translation();
-      if (Math.abs(pos.x - chuckerPos.x) < 0.35 && Math.abs(pos.z - chuckerPos.z) < 0.22 && Math.abs(pos.y - chuckerPos.y) < 0.25) {
+      if (Math.abs(pos.x - chuckerPos.x) < 0.16 && Math.abs(pos.z - chuckerPos.z) < 0.10 && Math.abs(pos.y - chuckerPos.y) < 0.25) {
         coin.hitChucker = true;
         if (this.onChuckerHit) {
           this.onChuckerHit();
