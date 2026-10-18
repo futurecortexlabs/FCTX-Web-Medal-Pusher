@@ -115,6 +115,9 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
   btnSound.addEventListener('click', () => {
     const isMuted = sound.toggleMute();
     btnSound.textContent = isMuted ? '🔇' : '🔊';
+    if (!isMuted && game.isFeverActive) {
+      sound.startFeverBgm();
+    }
   });
 
   // Add Credits (Cheat / Replenish)
@@ -155,9 +158,9 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
     } else if (e.code === 'KeyS') {
       game.performShake();
     } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-      game.setShooterX(Math.max(-1.0, game.shooterX / 1.35 - 0.15));
+      game.setShooterX(Math.max(-1.0, game.shooterX / 1.15 - 0.15));
     } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-      game.setShooterX(Math.min(1.0, game.shooterX / 1.35 + 0.15));
+      game.setShooterX(Math.min(1.0, game.shooterX / 1.15 + 0.15));
     }
   });
 
@@ -174,7 +177,12 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       game.setAutoDrop(false);
+      game.saveState();
     }
+  });
+
+  window.addEventListener('pagehide', () => {
+    game.saveState();
   });
 }
 

@@ -53,6 +53,7 @@ export class GameRenderer {
   public isCrounView = false;
   private shakeOffset = new THREE.Vector3();
   private shakeDuration = 0;
+  private shakeIntensity = 0.35;
 
   // Particle systems
   private sparkles: THREE.Points | null = null;
@@ -154,38 +155,38 @@ export class GameRenderer {
       metalness: 0.85,
     });
 
-    // Lower Deck platform (compact length 1.7m, center Z = -0.05)
+    // Lower Deck platform (matches physics cuboid 1.5 x 0.15 x 0.85 at Y=0 → top surface Y=0.15)
     const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.3, 1.7), deckMat);
-    lowerDeck.position.set(0, -0.15, -0.05);
+    lowerDeck.position.set(0, 0.0, -0.05);
     lowerDeck.receiveShadow = true;
     this.scene.add(lowerDeck);
 
     // Lower deck glowing side trims
     const trimMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
     const leftTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.7), trimMat);
-    leftTrim.position.set(-1.5, 0.01, -0.05);
+    leftTrim.position.set(-1.5, 0.16, -0.05);
     this.scene.add(leftTrim);
     const rightTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.7), trimMat);
-    rightTrim.position.set(1.5, 0.01, -0.05);
+    rightTrim.position.set(1.5, 0.16, -0.05);
     this.scene.add(rightTrim);
 
     // Front Payout Edge Glow Bar
     const payoutGlowMat = new THREE.MeshBasicMaterial({ color: 0xffaa00 });
     const payoutBar = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.04, 0.04), payoutGlowMat);
-    payoutBar.position.set(0, 0.01, 0.8);
+    payoutBar.position.set(0, 0.15, 0.8);
     this.scene.add(payoutBar);
 
-    // Upper stationary rear pusher back-wall
-    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(3.1, 0.6, 0.1), deckMat);
-    upperBack.position.set(0, 0.75, -1.95);
+    // Upper stationary rear pusher back-wall (matches physics cuboid 1.6 x 0.4 x 0.1 at Y=0.8)
+    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.8, 0.2), deckMat);
+    upperBack.position.set(0, 0.8, -1.95);
     upperBack.receiveShadow = true;
     this.scene.add(upperBack);
 
-    // Upper back slope / feeder guide
+    // Upper back slope / feeder guide (matches physics quaternion x=0.35 → ~0.715 rad)
     const slopeMat = new THREE.MeshStandardMaterial({ color: 0x111625, roughness: 0.3, metalness: 0.6 });
-    const backSlope = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.1, 0.8), slopeMat);
+    const backSlope = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.1, 1.2), slopeMat);
     backSlope.position.set(0, 1.4, -2.4);
-    backSlope.rotation.x = 0.55;
+    backSlope.rotation.x = 2 * Math.asin(0.35);
     this.scene.add(backSlope);
 
     // Outer Cabinet Frame
@@ -236,7 +237,7 @@ export class GameRenderer {
     this.scene.add(this.pusherMesh);
 
     // Fever Golden Shields (Left & Right)
-    const shieldGeo = new THREE.BoxGeometry(0.08, 0.6, 1.7);
+    const shieldGeo = new THREE.BoxGeometry(0.12, 0.8, 1.7);
     const shieldMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       metalness: 0.95,
@@ -313,7 +314,7 @@ export class GameRenderer {
       roughness: 0.2,
     });
     this.chuckerMesh = new THREE.Mesh(chuckerGeo, chuckerMat);
-    this.chuckerMesh.position.set(0, 0.08, 0.35);
+    this.chuckerMesh.position.set(0, 0.13, 0.35); // Nearly flush with deck top (Y=0.15)
 
     const lampMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
     const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.02, 16), lampMat);
@@ -553,6 +554,7 @@ export class GameRenderer {
    * Screen Shake Effect
    */
   public triggerShake(intensity = 0.35, duration = 0.5) {
+    this.shakeIntensity = intensity;
     this.shakeDuration = duration;
   }
 
@@ -591,16 +593,18 @@ export class GameRenderer {
    */
   public render(dt: number, physics: PhysicsWorld) {
     // 1. Update Camera Position and Smooth Transition
-    this.camera.position.lerp(this.targetCameraPos, 0.08);
-    this.currentCameraLookAt.lerp(this.targetCameraLookAt, 0.08);
+    const camAlpha = 1 - Math.pow(0.92, dt * 60); // Same feel as 0.08/frame at 60fps, on any refresh rate
+    this.camera.position.lerp(this.targetCameraPos, camAlpha);
+    this.currentCameraLookAt.lerp(this.targetCameraLookAt, camAlpha);
 
     // Apply Screen Shake if active
     if (this.shakeDuration > 0) {
       this.shakeDuration -= dt;
+      const s = this.shakeIntensity;
       this.shakeOffset.set(
-        (Math.random() - 0.5) * 0.25,
-        (Math.random() - 0.5) * 0.25,
-        (Math.random() - 0.5) * 0.15
+        (Math.random() - 0.5) * s * 0.7,
+        (Math.random() - 0.5) * s * 0.7,
+        (Math.random() - 0.5) * s * 0.4
       );
     } else {
       this.shakeOffset.set(0, 0, 0);

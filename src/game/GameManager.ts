@@ -8,6 +8,7 @@ export interface GameSaveState {
   jackpot: number;
   feverCount: number;
   ballCount: number;
+  chuckerStock?: number;
   boardState?: {
     coins: Array<{ x: number; y: number; z: number }>;
     balls: Array<{ x: number; y: number; z: number }>;
@@ -37,6 +38,10 @@ export class GameManager {
   public chuckerStock: number = 0; // 0 to 8
   private isRouletteSpinning: boolean = false;
   private rouletteReelSymbols = ['💀', '🪙', '🔮', '🔥', '🏰', '🪙', '💀', '🔮', '🔥', '🏰'];
+
+  // Croun sequence guard (covers intro → roll → lock-in → payout camera return)
+  private isCrounSequenceActive = false;
+  private pendingCrounCauses: string[] = [];
 
   // Input & Shooter
   public shooterX: number = 0; // -1.3 to +1.3
@@ -262,7 +267,13 @@ export class GameManager {
    * Croun Challenge (Physical Roulette Stage 2)
    */
   public triggerCrounChallenge(cause: string) {
-    if (this.physics.isCrounActive) return;
+    // The whole sequence (intro 1.5s → roll → 2.4s lock-in → 3.8s payout) is guarded.
+    // physics.isCrounActive alone is insufficient: it is false during intro and payout.
+    if (this.isCrounSequenceActive) {
+      this.pendingCrounCauses.push(cause);
+      return;
+    }
+    this.isCrounSequenceActive = true;
 
     this.renderer.setWinningPocket(null);
     this.renderer.setCrounCamera(true);
@@ -342,6 +353,13 @@ export class GameManager {
       this.renderer.setCrounCamera(false);
       this.renderer.setWinningPocket(null);
       this.updateHUD();
+      this.isCrounSequenceActive = false;
+
+      // Run queued challenge (e.g. JP slot hit while a croun was already rolling)
+      const next = this.pendingCrounCauses.shift();
+      if (next) {
+        setTimeout(() => this.triggerCrounChallenge(next), 800);
+      }
     }, 3800);
   }
 
@@ -385,9 +403,11 @@ export class GameManager {
         // 💀 ハズレ
         this.setReelSymbols('💀', '💀', '💀');
         this.elRouletteMsg.textContent = '💀 ハズレ (フィーバー+1)';
-        this.feverCount++;
-        if (this.feverCount >= 10 && !this.isFeverActive) {
-          this.triggerFeverMode();
+        if (!this.isFeverActive) {
+          this.feverCount = Math.min(this.feverCount + 1, 10);
+          if (this.feverCount >= 10) {
+            this.triggerFeverMode();
+          }
         }
       } else if (roll < 0.70) {
         // 🪙 小当たり15枚
@@ -541,13 +561,14 @@ export class GameManager {
   /**
    * LocalStorage Save & Load (Spec: 5秒自動セーブ ＆ 盤面状態保持)
    */
-  private saveState() {
+  public saveState() {
     try {
       const state: GameSaveState = {
         credits: this.credits,
         jackpot: this.jackpotAmount,
         feverCount: this.feverCount,
         ballCount: this.collectedBalls,
+        chuckerStock: this.chuckerStock,
         boardState: this.physics.exportBoardState(),
       };
       localStorage.setItem('fortune_pusher_save', JSON.stringify(state));
@@ -561,10 +582,12 @@ export class GameManager {
       const raw = localStorage.getItem('fortune_pusher_save');
       if (raw) {
         const state: GameSaveState = JSON.parse(raw);
-        if (state.credits != null) this.credits = state.credits;
-        if (state.jackpot != null) this.jackpotAmount = Math.max(state.jackpot, 300.0);
-        if (state.feverCount != null) this.feverCount = state.feverCount;
-        if (state.ballCount != null) this.collectedBalls = state.ballCount;
+        const num = (v: unknown, def: number) => (typeof v === 'number' && Number.isFinite(v) ? v : def);
+        this.credits = Math.max(0, Math.floor(num(state.credits, this.credits)));
+        this.jackpotAmount = Math.max(num(state.jackpot, 300.0), 300.0);
+        this.feverCount = Math.min(Math.max(0, Math.floor(num(state.feverCount, 0))), 9);
+        this.collectedBalls = Math.min(Math.max(0, Math.floor(num(state.ballCount, 0))), 2);
+        this.chuckerStock = Math.min(Math.max(0, Math.floor(num(state.chuckerStock, 0))), 8);
 
         if (state.boardState && state.boardState.coins && state.boardState.coins.length > 0) {
           this.physics.restoreBoardState(state.boardState);

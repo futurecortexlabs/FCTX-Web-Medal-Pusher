@@ -29,6 +29,8 @@ export interface CrounPocket {
 export class PhysicsWorld {
   public world!: RAPIER.World;
   private isInitialized = false;
+  private static readonly FIXED_DT = 1.0 / 60.0;
+  private stepAccumulator = 0;
 
   // Trackers
   public coins: Map<number, CoinInstance> = new Map();
@@ -432,10 +434,9 @@ export class PhysicsWorld {
     const layers = 10;
     const coinsPerLayer = 5;
     const layerRadius = 0.32; // Non-overlapping radius (2 * 0.32 * sin(36deg) = 0.376m > 0.36m coin diameter)
-    const startY = 0.70;
-
+    const startY = 0.65; // Pusher top is Y=0.60, coin half-height 0.046 → bottom layer rests on deck
     for (let l = 0; l < layers; l++) {
-      const y = startY + l * 0.096;
+      const y = startY + l * 0.094;
       for (let c = 0; c < coinsPerLayer; c++) {
         const angle = (c / coinsPerLayer) * Math.PI * 2 + (l % 2) * 0.3;
         const x = centerX + Math.cos(angle) * layerRadius;
@@ -453,9 +454,8 @@ export class PhysicsWorld {
           .setFriction(0.35)
           .setMass(1.0);
         const collider = this.world.createCollider(colliderDesc, body);
-
-        // Put to sleep until disturbed by pusher contact (dramatic avalanche)
-        body.sleep();
+        // Note: not forcing sleep — Rapier auto-sleeps settled bodies, and a forced
+        // sleep left the tower floating if it wasn't exactly resting on the deck.
 
         const instance: CoinInstance = {
           body,
@@ -512,7 +512,10 @@ export class PhysicsWorld {
     if (savedState.coins && savedState.coins.length > 0) {
       savedState.coins.forEach(c => {
         const coin = this.spawnCoin(c.x, c.y, c.z, true);
-        if (coin) coin.body.sleep();
+        if (coin) {
+          coin.hitChucker = true; // Pre-placed coins must not award chucker stock on load
+          coin.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+        }
       });
     } else {
       this.seedInitialMedals(70);
@@ -595,6 +598,22 @@ export class PhysicsWorld {
   public step(dt: number) {
     if (!this.isInitialized) return;
 
+    // Fixed-timestep accumulator: world.step() always advances 1/60s, so we must
+    // run exactly as many sub-steps as real time elapsed. Otherwise the game runs
+    // 2x speed on 120Hz displays and slow-motion on 30fps devices.
+    this.stepAccumulator += dt;
+    let subSteps = 0;
+    while (this.stepAccumulator >= PhysicsWorld.FIXED_DT && subSteps < 4) {
+      this.fixedStep(PhysicsWorld.FIXED_DT);
+      this.stepAccumulator -= PhysicsWorld.FIXED_DT;
+      subSteps++;
+    }
+    if (subSteps >= 4) {
+      this.stepAccumulator = 0; // Drop backlog instead of spiralling
+    }
+  }
+
+  private fixedStep(dt: number) {
     // 1. Move Pusher (Sinusoidal oscillation)
     const speedMultiplier = this.isFeverSpeed ? 2.0 : 1.0;
     this.pusherTime += dt * this.pusherSpeed * speedMultiplier;
@@ -620,6 +639,7 @@ export class PhysicsWorld {
       this.gateCooldown -= dt;
     }
     const gatePos = this.gateBody.translation();
+    const gateSpawns: Array<{ x: number; y: number; z: number }> = [];
     this.coins.forEach(coin => {
       if (coin.passedGate) return;
       const pos = coin.body.translation();
@@ -631,10 +651,13 @@ export class PhysicsWorld {
           if (this.onGateHit) {
             this.onGateHit({ x: pos.x, y: pos.y, z: pos.z });
           }
-          // Spawn additional duplicate coin on moving deck
-          this.spawnCoin(pos.x + (Math.random() - 0.5) * 0.1, pos.y + 0.08, pos.z, true);
+          gateSpawns.push({ x: pos.x, y: pos.y, z: pos.z });
         }
       }
+    });
+    // Spawn duplicate coins after iteration (spawnCoin may prune entries from this.coins)
+    gateSpawns.forEach(p => {
+      this.spawnCoin(p.x + (Math.random() - 0.5) * 0.1, p.y + 0.08, p.z, true);
     });
 
     // 6. Check Chucker Hit (at Z ~ 0.35 on shortened lower deck)
@@ -786,24 +809,25 @@ export class PhysicsWorld {
    * Seed field with an initial bed of thick medals across lower deck and pusher deck
    */
   public seedInitialMedals(count = 70) {
-    // 1. Lower deck bed (Z = -0.5 to +0.6)
+    // 1. Lower deck bed (Z = -0.5 to +0.6). Deck top is Y=0.15, coin half-height 0.046.
     const lowerCount = Math.floor(count * 0.65);
     for (let i = 0; i < lowerCount; i++) {
       const x = (Math.random() - 0.5) * 2.4;
       const z = -0.5 + Math.random() * 1.1;
-      const y = 0.15 + (i % 2) * 0.09;
+      const y = 0.20 + (i % 4) * 0.10;
       const coin = this.spawnCoin(x, y, z, true);
       if (coin) {
+        coin.hitChucker = true; // Seeded coins must not award chucker stock
         coin.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
       }
     }
 
-    // 2. Moving pusher deck bed (Z = -1.6 to -1.1)
+    // 2. Moving pusher deck bed (Z = -1.6 to -1.1). Pusher top is Y=0.60.
     const pusherCount = count - lowerCount;
     for (let i = 0; i < pusherCount; i++) {
       const x = (Math.random() - 0.5) * 2.2;
       const z = -1.6 + Math.random() * 0.5;
-      const y = 0.65 + (i % 2) * 0.09;
+      const y = 0.66 + (i % 3) * 0.10;
       const coin = this.spawnCoin(x, y, z, true);
       if (coin) {
         coin.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
