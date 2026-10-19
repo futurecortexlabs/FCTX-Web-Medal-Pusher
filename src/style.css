@@ -178,33 +178,42 @@ html, body {
   100% { transform: scale(1); }
 }
 
-/* ORB INDICATORS */
+/* ORB INDICATORS (Luminous Crystal Spheres) */
 .orb-indicators {
   display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
   margin: 2px 0;
 }
 
 .hud-left .orb-indicators {
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .orb-slot {
-  font-size: 20px;
-  line-height: 1;
-  color: #334155;
-  transition: all 0.3s ease;
-  text-shadow: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  font-size: 0;
+  line-height: 0;
+  display: inline-block;
+  background: radial-gradient(circle at 35% 35%, #334155 0%, #0f172a 100%);
+  border: 1.5px solid #475569;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .hud-left .orb-slot {
-  font-size: 26px;
+  width: 22px;
+  height: 22px;
 }
 
 .orb-slot.active {
-  color: #c084fc;
-  text-shadow: 0 0 8px #c084fc, 0 0 16px #e879f9;
+  background: radial-gradient(circle at 35% 30%, #ffd6fd 0%, #e879f9 35%, #a855f7 70%, #581c87 100%);
+  border-color: #f472b6;
+  box-shadow: 0 0 10px #d946ef, 0 0 18px rgba(168, 85, 247, 0.7), inset 0 1px 2px #fff;
   transform: scale(1.15);
 }
 
@@ -271,7 +280,10 @@ html, body {
 /* FEVER */
 .fever-pill {
   min-width: 150px;
-  padding: 6px 12px 8px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(244, 63, 94, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(244, 63, 94, 0.12);
 }
 
 .fever-top-row {
@@ -332,33 +344,41 @@ html, body {
   100% { background-position: 100% 50%; }
 }
 
-/* ============ ROULETTE (TOP-LEFT, BELOW HUD) ============ */
+/* ============ ROULETTE (TOP-LEFT, UNIFIED ARCADE CONSOLE) ============ */
 #roulette-container {
   position: absolute;
-  top: calc(var(--hud-height) + var(--safe-top) + 6px);
+  top: calc(var(--hud-height) + var(--safe-top) + 8px);
   left: calc(14px + var(--safe-left));
   z-index: 9;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   pointer-events: none;
+  background: linear-gradient(165deg, rgba(20, 16, 36, 0.95) 0%, rgba(9, 11, 24, 0.98) 100%);
+  border: 2px solid #f59e0b;
+  border-radius: 16px;
+  padding: 8px 12px 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(245, 158, 11, 0.25);
+  backdrop-filter: blur(8px);
 }
 
 .stock-container {
-  background: rgba(10, 15, 30, 0.92);
-  border: 1.5px solid #38bdf8;
-  border-radius: 12px;
-  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 0;
+  padding: 0 2px 6px 2px;
+  margin-bottom: 6px;
+  box-shadow: none;
+  backdrop-filter: none;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .stock-label {
-  font-size: clamp(12px, 1.2vw + 6px, 15px);
+  font-size: clamp(11px, 1.1vw + 5px, 13px);
   font-family: 'Orbitron', sans-serif;
   font-weight: 800;
   color: #7dd3fc;
@@ -367,73 +387,84 @@ html, body {
 
 .stock-lamps {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 .stock-dot {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
-  background: #1e293b;
-  border: 1.5px solid #64748b;
-  transition: all 0.2s;
+  background: radial-gradient(circle at 35% 35%, #334155 0%, #0f172a 100%);
+  border: 1px solid #475569;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s ease;
 }
 
 .stock-dot.active {
-  background: #38bdf8;
-  border-color: #e0f2fe;
-  box-shadow: 0 0 10px #38bdf8;
+  background: radial-gradient(circle at 35% 30%, #e0f2fe 0%, #38bdf8 50%, #0284c7 100%);
+  border-color: #7dd3fc;
+  box-shadow: 0 0 8px #38bdf8, 0 0 14px rgba(56, 189, 248, 0.6);
   transform: scale(1.15);
 }
 
 .roulette-frame {
-  background: radial-gradient(circle, #251206 0%, #0c0803 100%);
-  border: 2px solid #f59e0b;
-  border-radius: 14px;
-  padding: 8px 14px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  backdrop-filter: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
-  backdrop-filter: blur(4px);
 }
 
 .reels-window {
   display: flex;
   gap: 8px;
   background: #000;
-  padding: 6px 10px;
+  padding: 6px 8px;
   border-radius: 10px;
-  border: 1.5px solid #78350f;
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.95);
 }
 
 .reel {
   width: 56px;
   height: 64px;
-  background: linear-gradient(180deg, #1f2937 0%, #111827 50%, #1f2937 100%);
+  background: linear-gradient(180deg, #1f2937 0%, #0d121c 50%, #1f2937 100%);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid #4b5563;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.85);
+  border: 1px solid #374151;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.9);
 }
 
 .reel-symbol {
-  font-size: 38px;
+  font-size: 36px;
   font-weight: 900;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .roulette-msg {
-  font-size: clamp(13px, 1.1vw + 7px, 16px);
-  font-weight: 900;
+  font-size: clamp(12px, 1.1vw + 6px, 14px);
+  font-weight: 800;
   color: #fef08a;
   margin-top: 6px;
   text-align: center;
-  max-width: 230px;
-  text-shadow: 0 0 4px #000, 0 1px 2px #000;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(254, 240, 138, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  width: 100%;
+  text-shadow: 0 0 6px rgba(254, 240, 138, 0.4);
 }
 
 /* ============ 2x GATE HIT BADGE (flashes on hit only) ============ */
@@ -675,23 +706,50 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 .aim-track {
   width: 100%;
   height: 20px;
-  background: rgba(30, 41, 59, 0.88);
-  border: 1px solid #64748b;
+  background: linear-gradient(180deg, #090d16 0%, #151d2f 100%);
+  border: 1.5px solid rgba(56, 189, 248, 0.4);
   border-radius: 10px;
   position: relative;
   overflow: visible;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.aim-track::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent, transparent calc(10% - 1px), rgba(56, 189, 248, 0.22) 10%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.aim-track::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px;
+  height: 4px;
+  background: #38bdf8;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #38bdf8;
+  pointer-events: none;
 }
 
 .aim-needle {
   position: absolute;
-  top: -12px;
+  top: -11px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 26px;
-  line-height: 1;
-  color: #38bdf8;
-  filter: drop-shadow(0 0 8px #38bdf8);
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 13px solid #38bdf8;
+  filter: drop-shadow(0 0 6px #38bdf8) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
   pointer-events: none;
+  font-size: 0;
 }
 
 .controls-row {
@@ -724,8 +782,8 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 }
 
 .btn-shake {
-  background: linear-gradient(145deg, #374151, #1f2937);
-  border: 1px solid #6b7280;
+  background: linear-gradient(145deg, #2b3340, #171d26);
+  border: 1.5px solid #4b5563;
   color: #f3f4f6;
   padding: 8px 14px;
   display: flex;
@@ -734,7 +792,7 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   justify-content: center;
   min-width: 96px;
   min-height: 68px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .btn-shake .btn-icon {
@@ -767,12 +825,12 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   flex: 1;
   max-width: 460px;
   height: 68px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 51%), linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
   border: 2px solid #fef08a;
   border-radius: 34px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.6), 0 4px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 22px rgba(245, 158, 11, 0.55), 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -806,8 +864,8 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 }
 
 .util-btn {
-  background: rgba(30, 41, 59, 0.88);
-  border: 1px solid #64748b;
+  background: rgba(22, 29, 46, 0.9);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   border-radius: 10px;
   color: #fff;
   min-width: 48px;
@@ -817,14 +875,17 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   font-weight: 900;
   cursor: pointer;
   touch-action: manipulation;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s, background 0.15s, border-color 0.15s;
 }
 
 .util-btn:hover {
-  background: rgba(51, 65, 85, 0.95);
+  background: rgba(35, 47, 74, 0.95);
+  border-color: #38bdf8;
 }
 
 .util-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.94);
 }
 
 /* ============ TILT SCREEN ============ */
@@ -1004,31 +1065,33 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     --hud-height: 86px;
   }
 
-  /* 1. TOP HUD: Compact 2-row layout where row 2 stats fit in a single line */
+  /* 1. TOP HUD: Master 2-Row Arcade Dashboard */
   #top-hud {
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    padding: calc(4px + var(--safe-top)) calc(8px + var(--safe-right)) 5px calc(8px + var(--safe-left));
-    row-gap: 4px;
+    padding: calc(4px + var(--safe-top)) calc(10px + var(--safe-right)) 5px calc(10px + var(--safe-left));
+    row-gap: 5px;
     column-gap: 6px;
-    background: linear-gradient(180deg, rgba(6, 8, 20, 0.98) 0%, rgba(6, 8, 20, 0.88) 85%, transparent 100%);
+    background: linear-gradient(180deg, rgba(5, 7, 18, 0.98) 0%, rgba(5, 7, 18, 0.90) 80%, transparent 100%);
   }
 
-  /* Row 1: Grand Jackpot full-width header */
+  /* Row 1: Grand Jackpot Header (Centered, elegant arcade topper) */
   .jp-panel {
     order: -1;
-    flex-basis: 100%;
+    flex-basis: auto;
     width: 100%;
-    padding: 2px 8px 3px;
-    border-radius: 8px;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 2px 12px 3px;
+    border-radius: 9px;
     border-width: 1.5px;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.35);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
 
   .jp-title {
     font-size: 10px;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
     line-height: 1.1;
   }
 
@@ -1038,100 +1101,139 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 
   .currency-symbol {
     font-size: 14px;
+    line-height: 1;
   }
 
   .digital-odometer {
     font-size: 20px;
-    letter-spacing: 1.2px;
+    letter-spacing: 1.5px;
+    line-height: 1.1;
   }
 
-  /* Row 2: Credit, Balls, and Fever side-by-side without wrapping */
+  /* Row 2: 3-Stat Integrated Bar (Credit, Balls, Fever - perfectly synchronized) */
   .hud-left {
-    flex: 1.8 1 0;
+    flex: 1.85 1 0;
     gap: 5px;
     min-width: 0;
+    display: flex;
+    align-items: stretch;
   }
 
   .hud-right {
-    flex: 1.2 1 0;
+    flex: 1.15 1 0;
     min-width: 0;
-    justify-content: flex-end;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
   }
 
   .stat-pill,
   .hud-left .stat-pill {
     min-width: 0;
+    height: 44px;
+    min-height: 44px;
     padding: 3px 6px;
-    border-radius: 8px;
-    border: 1px solid rgba(56, 189, 248, 0.4);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    border-radius: 9px;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(13, 19, 38, 0.92);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 
   .pill-label,
   .hud-left .pill-label {
     font-size: 9px;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     line-height: 1.1;
+    margin-bottom: 2px;
   }
 
   .pill-val,
   .hud-left .pill-val {
     font-size: 16px;
     line-height: 1.1;
+    font-weight: 900;
   }
 
   .hud-left .pill-val small {
     font-size: 0.6em;
-    margin-left: 1px;
+    margin-left: 2px;
   }
 
   .hud-left .orb-indicators {
-    gap: 3px;
+    gap: 4px;
     margin: 1px 0 0;
   }
 
+  .orb-slot,
   .hud-left .orb-slot {
-    font-size: 15px;
+    width: 13px;
+    height: 13px;
+    font-size: 0;
+    line-height: 0;
   }
 
   .fever-pill {
     min-width: 0;
     width: 100%;
-    padding: 3px 6px;
-    border-radius: 8px;
+    height: 44px;
+    min-height: 44px;
+    padding: 3px 8px;
+    border-radius: 9px;
+    border: 1px solid rgba(244, 63, 94, 0.4);
+    background: rgba(28, 14, 24, 0.92);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
   }
 
   .fever-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
     gap: 4px;
+    width: 100%;
+  }
+
+  .fever-top-row .pill-label {
+    color: #f472b6;
+    margin-bottom: 0;
   }
 
   .fever-timer-label {
     font-size: 10px;
+    font-weight: 900;
   }
 
   .fever-bar-container {
     height: 7px;
-    margin-top: 2px;
+    margin-top: 3px;
     border-radius: 4px;
+    width: 100%;
   }
 
-  /* 2. ROULETTE CONTAINER: Positioned cleanly below HUD, compact and non-obstructive */
+  /* 2. ROULETTE MINI-CONSOLE (Mobile) */
   #roulette-container {
-    top: calc(var(--hud-height) + var(--safe-top) + 4px);
+    top: calc(var(--hud-height) + var(--safe-top) + 6px);
     left: calc(8px + var(--safe-left));
-    transform: none;
+    padding: 5px 8px 6px;
+    border-radius: 12px;
+    border-width: 1.5px;
     width: auto;
-    max-width: 148px;
+    max-width: 144px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 0 10px rgba(245, 158, 11, 0.2);
   }
 
   .stock-container {
-    padding: 3px 6px;
-    gap: 5px;
-    margin-bottom: 3px;
-    border-radius: 8px;
-    border-width: 1px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    padding: 0 0 4px 0;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(245, 158, 11, 0.2);
   }
 
   .stock-label {
@@ -1140,20 +1242,12 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .stock-lamps {
-    gap: 3px;
+    gap: 2.5px;
   }
 
   .stock-dot {
-    width: 8px;
-    height: 8px;
-    border-width: 1px;
-  }
-
-  .roulette-frame {
-    padding: 4px 6px 5px;
-    border-radius: 10px;
-    border-width: 1.5px;
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+    width: 7.5px;
+    height: 7.5px;
   }
 
   .reels-window {
@@ -1170,31 +1264,32 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .reel-symbol {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .roulette-msg {
-    font-size: 10px;
-    margin-top: 3px;
-    max-width: 130px;
-    line-height: 1.15;
+    font-size: 9.5px;
+    margin-top: 4px;
+    padding: 2px 4px;
+    line-height: 1.2;
+    border-radius: 4px;
   }
 
   /* 3. MULTIPLIER GATE BADGE (Mobile) */
   .gate-badge {
-    top: calc(var(--hud-height) + var(--safe-top) + 4px);
+    top: calc(var(--hud-height) + var(--safe-top) + 6px);
     right: calc(8px + var(--safe-right));
-    padding: 3px 8px;
+    padding: 4px 9px;
     border-radius: 10px;
-    font-size: 10px;
+    font-size: 10.5px;
     gap: 4px;
   }
 
-  /* 4. ALERT BANNER (Mobile: Centered on screen, properly sized) */
+  /* 4. ALERT BANNER (Mobile) */
   .alert-banner {
     top: 42%;
     max-width: 88vw;
-    padding: 10px 18px;
+    padding: 12px 20px;
     border-width: 2px;
     border-radius: 14px;
   }
@@ -1211,14 +1306,16 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 
   /* 5. CROUN CHALLENGE OVERLAY (Mobile) */
   .croun-overlay {
-    top: calc(6px + var(--safe-top));
+    top: calc(8px + var(--safe-top));
     width: 95%;
-    padding: 8px 12px;
-    border-radius: 12px;
+    max-width: 440px;
+    padding: 10px 14px;
+    border-radius: 14px;
   }
 
   .croun-tag {
     font-size: 9px;
+    letter-spacing: 1.5px;
   }
 
   .croun-title {
@@ -1226,14 +1323,14 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .croun-legend {
-    font-size: 10px;
-    gap: 2px 8px;
-    margin: 4px 0;
+    font-size: 10.5px;
+    gap: 3px 8px;
+    margin: 6px 0;
   }
 
   .croun-status {
     font-size: 14px;
-    margin-top: 2px;
+    margin: 4px 0;
   }
 
   .croun-actions {
@@ -1242,28 +1339,27 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .croun-btn {
-    padding: 4px 10px;
+    padding: 5px 14px;
     font-size: 11px;
     border-radius: 8px;
   }
 
-  /* 6. BOTTOM CONTROLS (Mobile: Ergonomic and compact) */
+  /* 6. BOTTOM CONTROLS (Mobile) */
   #bottom-controls {
-    padding: 6px calc(8px + var(--safe-right)) calc(8px + var(--safe-bottom)) calc(8px + var(--safe-left));
+    padding: 6px calc(10px + var(--safe-right)) calc(10px + var(--safe-bottom)) calc(10px + var(--safe-left));
   }
 
   .aim-track-container {
-    width: 96%;
+    width: 100%;
     margin-bottom: 6px;
     padding-top: 0;
   }
 
   .aim-hint {
-    font-size: 11px;
+    font-size: 10.5px;
     margin-bottom: 3px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: #94a3b8;
+    letter-spacing: 0;
   }
 
   .aim-track {
@@ -1272,12 +1368,14 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .aim-needle {
-    font-size: 20px;
     top: -10px;
+    border-left-width: 7px;
+    border-right-width: 7px;
+    border-top-width: 11px;
   }
 
   .controls-row {
-    width: 96%;
+    width: 100%;
     gap: 6px;
   }
 
@@ -1286,7 +1384,7 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     height: 56px;
     min-height: 56px;
     padding: 4px 6px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .btn-shake .btn-icon {
@@ -1308,10 +1406,11 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 
   .btn-drop-title {
     font-size: 17px;
+    letter-spacing: 0.5px;
   }
 
   .btn-drop-sub {
-    font-size: 10px;
+    font-size: 9.5px;
   }
 
   .side-utils {
@@ -1320,10 +1419,14 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 
   .util-btn {
     min-width: 36px;
+    height: 26px;
     min-height: 26px;
-    padding: 2px 4px;
+    padding: 0 4px;
     font-size: 11px;
     border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 
