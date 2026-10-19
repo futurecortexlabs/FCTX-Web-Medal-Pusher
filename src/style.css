@@ -1026,20 +1026,20 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 /* ============ RESPONSIVE: PHONES (portrait) ============ */
 @media (max-width: 640px) {
   :root {
-    --hud-height: 114px;
+    --hud-height: 108px;
   }
 
-  /* 1. TOP HUD: Master 2-Row Arcade Dashboard with STRICT predictable height */
+  /* 1. TOP HUD: 2-Row Arcade Dashboard with STRICT predictable height */
   #top-hud {
     flex-wrap: wrap;
     justify-content: center;
     align-items: stretch;
     padding: calc(6px + var(--safe-top)) calc(10px + var(--safe-right)) 6px calc(10px + var(--safe-left));
     row-gap: 6px;
-    column-gap: 8px;
+    column-gap: 0;
     background: linear-gradient(180deg, rgba(5, 7, 18, 0.98) 0%, rgba(5, 7, 18, 0.88) 85%, transparent 100%);
     box-sizing: border-box;
-    height: calc(114px + var(--safe-top));
+    height: calc(108px + var(--safe-top));
     overflow: visible;
   }
 
@@ -1049,7 +1049,7 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     width: 100%;
     max-width: 320px;
     margin: 0 auto;
-    height: 44px;
+    height: 42px;
     padding: 2px 12px 3px;
     border-radius: 10px;
     border-width: 1.5px;
@@ -1088,25 +1088,25 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     line-height: 1;
   }
 
-  /* Row 2: 3-Stat Integrated Bar (Credit, Balls, Fever - perfectly synchronized) */
+  /* Row 2: CREDIT, BALLS, STOCK in a single horizontal row (3 equal pills) */
   .hud-left {
-    flex: 2 1 0;
-    gap: 6px;
-    min-width: 0;
     display: flex;
     align-items: stretch;
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+    min-width: 0;
+    flex: 1 1 100%;
   }
 
   .hud-right {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    align-items: stretch;
-    justify-content: stretch;
+    display: none;
   }
 
+  /* All 3 pills share identical height, background, border, and width */
   .stat-pill,
-  .hud-left .stat-pill {
+  .hud-left .stat-pill,
+  .hud-left .stock-container {
     min-width: 0;
     height: 48px;
     min-height: 48px;
@@ -1115,22 +1115,24 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     border: 1px solid rgba(56, 189, 248, 0.45);
     background: rgba(13, 19, 38, 0.92);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    flex: 1;
+    flex: 1 1 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
+    margin: 0;
   }
 
   .pill-label,
-  .hud-left .pill-label {
+  .hud-left .pill-label,
+  .hud-left .stock-label {
     font-family: 'Orbitron', sans-serif;
     font-size: 10.5px;
     font-weight: 700;
     letter-spacing: 0.8px;
     line-height: 1.2;
-    margin-bottom: 1px;
+    margin-bottom: 2px;
     color: #7dd3fc;
   }
 
@@ -1161,56 +1163,33 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     height: 16px;
   }
 
-  .fever-pill {
-    min-width: 0;
-    width: 100%;
-    height: 48px;
-    min-height: 48px;
-    padding: 3px 8px;
-    border-radius: 10px;
-    border: 1px solid rgba(244, 63, 94, 0.5);
-    background: rgba(28, 14, 24, 0.92);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  /* Stock lamps inside HUD pill on Mobile */
+  .hud-left .stock-container .stock-lamps {
     display: flex;
-    flex-direction: column;
+    gap: 3px;
+    align-items: center;
     justify-content: center;
-    align-items: stretch;
-    box-sizing: border-box;
+    margin-top: 2px;
   }
 
-  .fever-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 4px;
-    width: 100%;
-  }
-
-  .fever-top-row .pill-label {
-    color: #f472b6;
-    margin-bottom: 0;
-    font-size: 10.5px;
-    font-weight: 700;
-  }
-
-  .fever-timer-label {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 12px;
-    font-weight: 800;
-    color: #fca5a5;
-    line-height: 1.2;
-  }
-
-  .fever-bar-container {
+  .hud-left .stock-container .stock-dot {
+    width: 8px;
     height: 8px;
-    margin-top: 3px;
-    border-radius: 4px;
-    width: 100%;
-    background: #111827;
-    border: 1px solid #374151;
+    border-radius: 50%;
+    background: #1e293b;
+    border: 1px solid #64748b;
+    box-sizing: border-box;
+    transition: all 0.2s;
   }
 
-  /* 2. ROULETTE MINI-CONSOLE (Mobile: Positioned with GUARANTEED air gap below HUD) */
+  .hud-left .stock-container .stock-dot.active {
+    background: #38bdf8;
+    border-color: #e0f2fe;
+    box-shadow: 0 0 8px #38bdf8;
+    transform: scale(1.15);
+  }
+
+  /* 2. ROULETTE MINI-CONSOLE (Mobile: With FEVER Gauge as topper) */
   #roulette-container {
     top: calc(var(--hud-height) + var(--safe-top) + 10px);
     left: calc(10px + var(--safe-left));
@@ -1224,41 +1203,61 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     box-sizing: border-box;
   }
 
-  .stock-container {
-    background: transparent;
-    border: none;
-    border-bottom: 1px solid rgba(245, 158, 11, 0.25);
-    border-radius: 0;
-    box-shadow: none;
-    padding: 0 0 4px 0;
-    margin: 0;
+  /* FEVER Gauge atop Roulette Frame on Mobile */
+  #roulette-container .fever-pill {
+    min-width: 0;
     width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 4px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(244, 63, 94, 0.55);
+    background: rgba(28, 14, 24, 0.92);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    box-sizing: border-box;
+    margin: 0;
   }
 
-  .stock-label {
+  #roulette-container .fever-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 4px;
+    width: 100%;
+  }
+
+  #roulette-container .fever-top-row .pill-label {
+    color: #f472b6;
+    margin-bottom: 0;
     font-family: 'Orbitron', sans-serif;
     font-size: 10.5px;
     font-weight: 700;
-    color: #7dd3fc;
     letter-spacing: 0.8px;
   }
 
-  .stock-lamps {
-    gap: 3.5px;
-    display: flex;
+  #roulette-container .fever-timer-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11.5px;
+    font-weight: 800;
+    color: #fca5a5;
+    line-height: 1.2;
   }
 
-  .stock-dot {
-    width: 8.5px;
-    height: 8.5px;
-    border-radius: 50%;
+  #roulette-container .fever-bar-container {
+    height: 7px;
+    margin-top: 3px;
+    border-radius: 3.5px;
+    width: 100%;
+    background: #111827;
+    border: 1px solid #374151;
   }
 
   .roulette-frame {

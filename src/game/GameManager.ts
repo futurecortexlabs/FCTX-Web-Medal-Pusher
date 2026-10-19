@@ -88,8 +88,50 @@ export class GameManager {
     this.sound = sound;
 
     this.cacheDOMElements();
+    this.syncResponsiveHudLayout();
+    window.addEventListener('resize', () => this.syncResponsiveHudLayout());
     this.loadState();
     this.bindPhysicsEvents();
+  }
+
+  private syncResponsiveHudLayout() {
+    const isMobile = window.innerWidth <= 640;
+    const hudLeft = document.querySelector('.hud-left') as HTMLElement | null;
+    const hudRight = document.querySelector('.hud-right') as HTMLElement | null;
+    const rouletteContainer = document.getElementById('roulette-container');
+    const rouletteFrame = document.getElementById('roulette-frame');
+    const feverPill = document.getElementById('fever-box');
+    const stockContainer = document.querySelector('.stock-container') as HTMLElement | null;
+
+    if (!hudLeft || !hudRight || !rouletteContainer || !feverPill || !stockContainer) return;
+
+    if (isMobile) {
+      // Mobile: Move STOCK next to CREDIT & BALLS inside hud-left
+      if (stockContainer.parentElement !== hudLeft) {
+        hudLeft.appendChild(stockContainer);
+      }
+      // Mobile: Move FEVER onto rouletteContainer above rouletteFrame
+      if (feverPill.parentElement !== rouletteContainer) {
+        if (rouletteFrame) {
+          rouletteContainer.insertBefore(feverPill, rouletteFrame);
+        } else {
+          rouletteContainer.appendChild(feverPill);
+        }
+      }
+    } else {
+      // Desktop: Restore STOCK above rouletteFrame in rouletteContainer
+      if (stockContainer.parentElement !== rouletteContainer) {
+        if (rouletteFrame) {
+          rouletteContainer.insertBefore(stockContainer, rouletteFrame);
+        } else {
+          rouletteContainer.appendChild(stockContainer);
+        }
+      }
+      // Desktop: Restore FEVER to top-hud hud-right
+      if (feverPill.parentElement !== hudRight) {
+        hudRight.appendChild(feverPill);
+      }
+    }
   }
 
   private cacheDOMElements() {
