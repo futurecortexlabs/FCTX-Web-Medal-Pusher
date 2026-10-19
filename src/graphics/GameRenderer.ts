@@ -155,19 +155,19 @@ export class GameRenderer {
       metalness: 0.85,
     });
 
-    // Continuous lower deck platform (3.6m wide x 4.24m long, completely sealed from Z = +0.97 to Z = -3.27)
-    const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 4.24), deckMat);
-    lowerDeck.position.set(0, 0.0, -1.15);
+    // Continuous lower deck platform (3.6m wide x 5.0m long, completely sealed from Z = +1.00 to Z = -4.00)
+    const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 5.0), deckMat);
+    lowerDeck.position.set(0, 0.0, -1.50);
     lowerDeck.receiveShadow = true;
     this.scene.add(lowerDeck);
 
-    // Lower deck glowing side trims (along front playfield)
+    // Lower deck glowing side trims (along front playfield Z = -0.20 to +0.97)
     const trimMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-    const leftTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.37), trimMat);
-    leftTrim.position.set(-1.80, 0.16, 0.285);
+    const leftTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.17), trimMat);
+    leftTrim.position.set(-1.80, 0.16, 0.385);
     this.scene.add(leftTrim);
-    const rightTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.37), trimMat);
-    rightTrim.position.set(1.80, 0.16, 0.285);
+    const rightTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.17), trimMat);
+    rightTrim.position.set(1.80, 0.16, 0.385);
     this.scene.add(rightTrim);
 
     // Front Payout Edge Glow Bar (at Z = 0.97)
@@ -176,38 +176,38 @@ export class GameRenderer {
     payoutBar.position.set(0, 0.15, 0.97);
     this.scene.add(payoutBar);
 
-    // Stationary rear scraper wall (flush on top of moving deck at Y=0.60, Z = -2.05)
+    // Stationary rear scraper wall (extends down through pusher into deck, Z = -2.05)
     const scraperMat = new THREE.MeshStandardMaterial({ color: 0xffea00, roughness: 0.2, metalness: 0.9 });
-    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(3.64, 1.0, 0.16), scraperMat);
-    upperBack.position.set(0, 1.10, -2.05);
+    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(3.64, 1.80, 0.20), scraperMat);
+    upperBack.position.set(0, 1.40, -2.05);
     upperBack.receiveShadow = true;
     this.scene.add(upperBack);
 
     // Upper back slope / feeder guide
     const slopeMat = new THREE.MeshStandardMaterial({ color: 0x111625, roughness: 0.3, metalness: 0.6 });
-    const backSlope = new THREE.Mesh(new THREE.BoxGeometry(3.64, 0.1, 1.4), slopeMat);
-    backSlope.position.set(0, 1.9, -2.8);
+    const backSlope = new THREE.Mesh(new THREE.BoxGeometry(3.64, 0.1, 1.6), slopeMat);
+    backSlope.position.set(0, 2.2, -3.2);
     backSlope.rotation.x = 2 * Math.asin(0.35);
     this.scene.add(backSlope);
 
-    // Pusher side guide walls (flush flanking the moving pusher to prevent side spillage)
+    // Pusher side guide walls (flush flanking the moving pusher from Z = -4.00 to -0.20)
     const guideMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3, metalness: 0.8 });
-    const leftGuide = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.5, 2.8), guideMat);
-    leftGuide.position.set(-1.82, 0.90, -1.80);
+    const leftGuide = new THREE.Mesh(new THREE.BoxGeometry(0.04, 2.0, 3.8), guideMat);
+    leftGuide.position.set(-1.82, 1.15, -2.10);
     this.scene.add(leftGuide);
 
-    const rightGuide = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.5, 2.8), guideMat);
-    rightGuide.position.set(1.82, 0.90, -1.80);
+    const rightGuide = new THREE.Mesh(new THREE.BoxGeometry(0.04, 2.0, 3.8), guideMat);
+    rightGuide.position.set(1.82, 1.15, -2.10);
     this.scene.add(rightGuide);
 
     // Outer Cabinet Frame
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x0a0f1d, roughness: 0.4, metalness: 0.7 });
-    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.5, 5.2), frameMat);
-    leftWall.position.set(-2.20, 0.8, -0.7);
+    const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.5, 6.0), frameMat);
+    leftWall.position.set(-2.20, 0.8, -1.0);
     this.scene.add(leftWall);
 
-    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.5, 5.2), frameMat);
-    rightWall.position.set(2.20, 0.8, -0.7);
+    const rightWall = new THREE.Mesh(new THREE.BoxGeometry(0.16, 2.5, 6.0), frameMat);
+    rightWall.position.set(2.20, 0.8, -1.0);
     this.scene.add(rightWall);
   }
 
@@ -228,15 +228,17 @@ export class GameRenderer {
   }
 
   private setupPusherAndShields() {
-    // Deep Kinematic Pusher body (width 3.6m, height 0.44m, length 2.10m)
-    const pusherGeo = new THREE.BoxGeometry(3.6, 0.44, 2.10);
+    // Deep Kinematic Pusher body (width 3.6m, height 0.52m, length 2.40m)
+    // Recesses 7cm into lower deck surface to ensure 0 gap under pusher
+    const pusherGeo = new THREE.BoxGeometry(3.6, 0.52, 2.40);
+    pusherGeo.translate(0, 0, -0.15);
     const pusherMat = new THREE.MeshStandardMaterial({
       color: 0x22283e,
       metalness: 0.8,
       roughness: 0.3,
     });
     this.pusherMesh = new THREE.Mesh(pusherGeo, pusherMat);
-    this.pusherMesh.position.set(0, 0.38, -1.90);
+    this.pusherMesh.position.set(0, 0.34, -1.90);
     this.pusherMesh.castShadow = true;
     this.pusherMesh.receiveShadow = true;
 
@@ -247,8 +249,8 @@ export class GameRenderer {
     this.pusherMesh.add(frontLed);
     this.scene.add(this.pusherMesh);
 
-    // Fever Golden Shields (Left & Right along front deck)
-    const shieldGeo = new THREE.BoxGeometry(0.12, 0.8, 1.37);
+    // Fever Golden Shields (Left & Right along front deck Z = -0.20 to +0.97)
+    const shieldGeo = new THREE.BoxGeometry(0.12, 0.80, 1.17);
     const shieldMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       metalness: 0.95,
@@ -257,11 +259,11 @@ export class GameRenderer {
     });
 
     this.leftShieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-    this.leftShieldMesh.position.set(-1.84, -1.0, 0.285);
+    this.leftShieldMesh.position.set(-1.84, -1.0, 0.385);
     this.scene.add(this.leftShieldMesh);
 
     this.rightShieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-    this.rightShieldMesh.position.set(1.84, -1.0, 0.285);
+    this.rightShieldMesh.position.set(1.84, -1.0, 0.385);
     this.scene.add(this.rightShieldMesh);
   }
 
