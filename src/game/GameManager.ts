@@ -4,6 +4,7 @@ import { GameRenderer } from '../graphics/GameRenderer';
 import { SoundManager } from '../audio/SoundManager';
 
 export interface GameSaveState {
+  version?: number;
   credits: number;
   jackpot: number;
   feverCount: number;
@@ -213,7 +214,7 @@ export class GameManager {
 
     this.credits--;
     this.sound.playCoinDrop();
-    this.physics.spawnCoin(this.shooterX, 1.35, -1.45);
+    this.physics.spawnCoin(this.shooterX, 1.35, -1.65);
     this.updateHUD();
   }
 
@@ -222,8 +223,8 @@ export class GameManager {
   }
 
   public setShooterX(normX: number) {
-    // normX is -1.0 to 1.0 from UI swipe (width of pusher ~ 2.4m)
-    this.shooterX = normX * 1.15;
+    // normX is -1.0 to 1.0 from UI swipe (width of pusher ~ 3.6m)
+    this.shooterX = normX * 1.40;
     const pct = ((normX + 1.0) / 2.0) * 100;
     this.elAimNeedle.style.left = `${pct}%`;
     this.renderer.updateShooterPosition(this.shooterX);
@@ -395,8 +396,8 @@ export class GameManager {
       let spawned = 0;
       const waterfallInterval = setInterval(() => {
         for (let i = 0; i < 4; i++) {
-          const rx = (Math.random() - 0.5) * 2.0;
-          this.physics.spawnCoin(rx, 1.4, -1.45, true);
+          const rx = (Math.random() - 0.5) * 2.5;
+          this.physics.spawnCoin(rx, 1.4, -1.65, true);
           spawned++;
         }
         if (spawned >= 60) {
@@ -411,7 +412,7 @@ export class GameManager {
         ? '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!! [即時確定]'
         : '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!!';
       this.credits += 100;
-      this.physics.spawnMedalTower(0, -1.35);
+      this.physics.spawnMedalTower(0, -1.55);
       this.sound.playTowerCollapse();
       try {
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
@@ -422,8 +423,8 @@ export class GameManager {
         : '🟦 50枚払い出し獲得!!';
       this.credits += 50;
       for (let i = 0; i < 15; i++) {
-        const rx = (Math.random() - 0.5) * 1.8;
-        this.physics.spawnCoin(rx, 1.35, -1.45, true);
+        const rx = (Math.random() - 0.5) * 2.2;
+        this.physics.spawnCoin(rx, 1.35, -1.65, true);
       }
     }
 
@@ -501,14 +502,14 @@ export class GameManager {
         this.sound.playRouletteWin();
         this.credits += 15;
         for (let i = 0; i < 6; i++) {
-          this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 1.35, -1.45, true);
+          this.physics.spawnCoin((Math.random() - 0.5) * 1.8, 1.35, -1.65, true);
         }
       } else if (roll < 0.86) {
         // 🏰 タワー召喚マス (6%)
         this.setReelSymbols('🏰', '🏰', '🏰');
         this.elRouletteMsg.textContent = '🏰 タワー召喚マス当選！';
         this.sound.playTowerCollapse();
-        this.physics.spawnMedalTower(0, -1.35);
+        this.physics.spawnMedalTower(0, -1.55);
         this.showAlert('🏰 TOWER SUMMON!', '中央に50枚メダルタワーを召喚！');
       } else if (roll < 0.97) {
         // 🔮 カラーボール出現 (11%)
@@ -519,13 +520,13 @@ export class GameManager {
           this.sound.playRouletteWin();
           this.credits += 25;
           for (let i = 0; i < 10; i++) {
-            this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 1.35, -1.45, true);
+            this.physics.spawnCoin((Math.random() - 0.5) * 1.8, 1.35, -1.65, true);
           }
         } else {
           this.setReelSymbols('🔮', '🔮', '🔮');
           this.elRouletteMsg.textContent = '🔮 カラーボール落下！';
           this.sound.playOrbDrop();
-          this.physics.spawnBall(0, 1.45, -1.4);
+          this.physics.spawnBall(0, 1.45, -1.60);
         }
       } else {
         // 🔥 JPチャレンジ突入 (3%)
@@ -660,6 +661,7 @@ export class GameManager {
   public saveState() {
     try {
       const state: GameSaveState = {
+        version: 2,
         credits: this.credits,
         jackpot: this.jackpotAmount,
         feverCount: this.feverCount,
@@ -685,16 +687,17 @@ export class GameManager {
         this.collectedBalls = Math.min(Math.max(0, Math.floor(num(state.ballCount, 0))), 2);
         this.chuckerStock = Math.min(Math.max(0, Math.floor(num(state.chuckerStock, 0))), 8);
 
-        if (state.boardState && state.boardState.coins && state.boardState.coins.length > 0) {
+        // If saved under version 2 (matching new stage dimensions), restore directly; otherwise seed clean bed
+        if (state.version === 2 && state.boardState && state.boardState.coins && state.boardState.coins.length > 0) {
           this.physics.restoreBoardState(state.boardState);
         } else {
-          this.physics.seedInitialMedals(80);
+          this.physics.seedInitialMedals(100);
         }
       } else {
-        this.physics.seedInitialMedals(80);
+        this.physics.seedInitialMedals(100);
       }
     } catch (e) {
-      this.physics.seedInitialMedals(80);
+      this.physics.seedInitialMedals(100);
     }
     this.updateHUD();
   }

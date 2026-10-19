@@ -36,14 +36,14 @@ export class PhysicsWorld {
   public coins: Map<number, CoinInstance> = new Map();
   public balls: Map<number, BallInstance> = new Map();
   private nextEntityId = 1;
-  public readonly maxFieldCoins = 120; // Hard cap to guarantee 60fps without WASM thread lock
+  public readonly maxFieldCoins = 150; // Scaled for larger playfield
   private gateCooldown = 0;
 
   // Kinematic Pusher
   public pusherBody!: RAPIER.RigidBody;
-  private pusherBaseZ = -1.35;
-  private pusherStroke = 0.85;
-  private pusherSpeed = 1.6;
+  private pusherBaseZ = -1.55;
+  private pusherStroke = 1.00;
+  private pusherSpeed = 1.5;
   private pusherTime = 0;
   public isFeverSpeed = false;
 
@@ -101,55 +101,55 @@ export class PhysicsWorld {
    * Shortened lower deck and visible moving pusher upper deck
    */
   private createField() {
-    // Upper stationary rear pusher back-wall (pushes coins off the moving pusher deck when it retracts)
-    const upperBackDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.8, -1.95);
+    // Upper stationary rear pusher back-wall (pushes coins off moving pusher deck when it retracts)
+    const upperBackDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.8, -2.27);
     const upperBackBody = this.world.createRigidBody(upperBackDesc);
-    const upperBackColliderDesc = RAPIER.ColliderDesc.cuboid(1.6, 0.4, 0.1)
+    const upperBackColliderDesc = RAPIER.ColliderDesc.cuboid(1.9, 0.4, 0.1)
       .setFriction(0.2)
       .setRestitution(0.05);
     this.world.createCollider(upperBackColliderDesc, upperBackBody);
 
     // Upper back containment slope / guide
     const backSlopeDesc = RAPIER.RigidBodyDesc.fixed()
-      .setTranslation(0, 1.4, -2.4)
+      .setTranslation(0, 1.4, -2.8)
       .setRotation({ x: 0.35, y: 0, z: 0, w: 0.936 });
     const backSlopeBody = this.world.createRigidBody(backSlopeDesc);
-    const backSlopeColDesc = RAPIER.ColliderDesc.cuboid(1.6, 0.05, 0.6)
+    const backSlopeColDesc = RAPIER.ColliderDesc.cuboid(1.9, 0.05, 0.7)
       .setFriction(0.15)
       .setRestitution(0.1);
     this.world.createCollider(backSlopeColDesc, backSlopeBody);
 
     // Rear boundary wall
-    const backWallDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 2.0, -3.0);
+    const backWallDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 2.0, -3.5);
     const backWall = this.world.createRigidBody(backWallDesc);
-    this.world.createCollider(RAPIER.ColliderDesc.cuboid(1.8, 2.0, 0.1), backWall);
+    this.world.createCollider(RAPIER.ColliderDesc.cuboid(2.2, 2.0, 0.1), backWall);
 
-    // Lower stationary deck (compact length so coins fall quickly!)
-    // Center at Z = -0.05, length = 1.7m (Z: -0.90 to +0.80)
+    // Lower stationary deck (scaled ~20% wider and longer: 3.6m x 2.04m, center Z = -0.05)
+    // Z range: -1.07 to +0.97
     const lowerDeckDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.0, -0.05);
     const lowerDeckBody = this.world.createRigidBody(lowerDeckDesc);
-    const lowerDeckColliderDesc = RAPIER.ColliderDesc.cuboid(1.5, 0.15, 0.85)
-      .setFriction(0.26) // Difficulty: medals pile up more before avalanching (was 0.15)
+    const lowerDeckColliderDesc = RAPIER.ColliderDesc.cuboid(1.8, 0.15, 1.02)
+      .setFriction(0.26)
       .setRestitution(0.08);
     this.world.createCollider(lowerDeckColliderDesc, lowerDeckBody);
 
     // Side outer containment walls
-    const leftOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(-1.85, 0.8, -0.7));
-    this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.08, 1.2, 2.4).setRestitution(0.2), leftOuterWall);
+    const leftOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(-2.20, 0.8, -0.7));
+    this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.08, 1.2, 2.8).setRestitution(0.2), leftOuterWall);
 
-    const rightOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(1.85, 0.8, -0.7));
-    this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.08, 1.2, 2.4).setRestitution(0.2), rightOuterWall);
+    const rightOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(2.20, 0.8, -0.7));
+    this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.08, 1.2, 2.8).setRestitution(0.2), rightOuterWall);
   }
 
   /**
    * Kinematic Pusher Setup
-   * Moving upper deck where coins are dropped directly onto
+   * Moving upper deck where coins are dropped directly onto (3.6m wide x 1.44m long)
    */
   private createPusher() {
     const pusherDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, 0.38, this.pusherBaseZ);
     this.pusherBody = this.world.createRigidBody(pusherDesc);
-    // Pusher box: width 3.0m, height 0.44m, length 1.2m
-    const pusherCollider = RAPIER.ColliderDesc.cuboid(1.5, 0.22, 0.6)
+    // Pusher box: width 3.6m, height 0.44m, length 1.44m
+    const pusherCollider = RAPIER.ColliderDesc.cuboid(1.8, 0.22, 0.72)
       .setFriction(0.85) // High top friction moves coins forward
       .setRestitution(0.05);
     this.world.createCollider(pusherCollider, this.pusherBody);
@@ -160,15 +160,15 @@ export class PhysicsWorld {
    */
   private createShields() {
     // Left shield
-    const leftDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(-1.54, this.currentShieldY, -0.05);
+    const leftDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(-1.84, this.currentShieldY, -0.05);
     this.leftShieldBody = this.world.createRigidBody(leftDesc);
-    const shieldColliderDesc = RAPIER.ColliderDesc.cuboid(0.06, 0.4, 0.85)
+    const shieldColliderDesc = RAPIER.ColliderDesc.cuboid(0.06, 0.4, 1.02)
       .setRestitution(0.1)
       .setFriction(0.2);
     this.world.createCollider(shieldColliderDesc, this.leftShieldBody);
 
     // Right shield
-    const rightDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(1.54, this.currentShieldY, -0.05);
+    const rightDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(1.84, this.currentShieldY, -0.05);
     this.rightShieldBody = this.world.createRigidBody(rightDesc);
     this.world.createCollider(shieldColliderDesc, this.rightShieldBody);
   }
@@ -177,9 +177,9 @@ export class PhysicsWorld {
    * Moving 2x Gate Trigger (Directly above the moving pusher deck)
    */
   private create2xGate() {
-    const gateDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, 1.15, -1.35);
+    const gateDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, 1.15, -1.55);
     this.gateBody = this.world.createRigidBody(gateDesc);
-    const gateColDesc = RAPIER.ColliderDesc.cuboid(0.35, 0.3, 0.2)
+    const gateColDesc = RAPIER.ColliderDesc.cuboid(0.40, 0.3, 0.2)
       .setSensor(true);
     this.gateCollider = this.world.createCollider(gateColDesc, this.gateBody);
   }
@@ -188,9 +188,9 @@ export class PhysicsWorld {
    * Chucker Sensor (Center-lower deck)
    */
   private createChucker() {
-    const chuckerDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.18, 0.35);
+    const chuckerDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.18, 0.42);
     const chuckerBody = this.world.createRigidBody(chuckerDesc);
-    const chuckerColDesc = RAPIER.ColliderDesc.cuboid(0.16, 0.12, 0.10)
+    const chuckerColDesc = RAPIER.ColliderDesc.cuboid(0.18, 0.12, 0.10)
       .setSensor(true);
     this.chuckerCollider = this.world.createCollider(chuckerColDesc, chuckerBody);
   }
@@ -317,7 +317,7 @@ export class PhysicsWorld {
    * Spawn a standard medal
    * Placed right above the moving pusher deck (Z ~ -1.45, Y ~ 1.35)
    */
-  public spawnCoin(x: number, y: number = 1.35, z: number = -1.45, isBonus = false): CoinInstance | null {
+  public spawnCoin(x: number, y: number = 1.35, z: number = -1.65, isBonus = false): CoinInstance | null {
     if (!this.isInitialized) return null;
 
     // Safety hard cap: if reaching limit, smoothly prune the most advanced front coin
@@ -378,7 +378,7 @@ export class PhysicsWorld {
   /**
    * Spawn a Color Ball (Sphere) directly on moving pusher deck
    */
-  public spawnBall(x: number = 0, y: number = 1.5, z: number = -1.4): BallInstance | null {
+  public spawnBall(x: number = 0, y: number = 1.5, z: number = -1.60): BallInstance | null {
     if (!this.isInitialized) return null;
 
     const bodyDesc = RAPIER.RigidBodyDesc.dynamic()
@@ -406,7 +406,7 @@ export class PhysicsWorld {
    * Spawn Medal Tower (50 vertical stacked thick coins)
    * Collapses in dramatic avalanche once pusher moves
    */
-  public spawnMedalTower(centerX: number = 0, centerZ: number = -1.35) {
+  public spawnMedalTower(centerX: number = 0, centerZ: number = -1.55) {
     if (!this.isInitialized) return;
 
     // Prune excess coins first if field is full
@@ -476,7 +476,7 @@ export class PhysicsWorld {
     this.coins.forEach(coin => {
       const p = coin.body.translation();
       // Only persist active field coins
-      if (p.y > -0.5 && p.y < 3.0 && p.z > -2.5 && p.z < 0.9) {
+      if (p.y > -0.5 && p.y < 3.0 && p.z > -3.0 && p.z < 1.1) {
         coinsData.push({ x: p.x, y: p.y, z: p.z });
       }
     });
@@ -484,7 +484,7 @@ export class PhysicsWorld {
     const ballsData: Array<{ x: number; y: number; z: number }> = [];
     this.balls.forEach(ball => {
       const p = ball.body.translation();
-      if (p.y > -0.5 && p.z > -2.5 && p.z < 0.9) {
+      if (p.y > -0.5 && p.z > -3.0 && p.z < 1.1) {
         ballsData.push({ x: p.x, y: p.y, z: p.z });
       }
     });
@@ -658,13 +658,13 @@ export class PhysicsWorld {
 
     // 2. Move 2x Multiplier Gate
     this.gateTime += dt * 1.5;
-    this.gateX = Math.sin(this.gateTime) * 0.95;
-    this.gateBody.setNextKinematicTranslation({ x: this.gateX, y: 1.15, z: -1.35 });
+    this.gateX = Math.sin(this.gateTime) * 1.15;
+    this.gateBody.setNextKinematicTranslation({ x: this.gateX, y: 1.15, z: -1.55 });
 
     // 3. Smoothly Animate Fever Shield
     this.currentShieldY += (this.targetShieldY - this.currentShieldY) * 0.1;
-    this.leftShieldBody.setNextKinematicTranslation({ x: -1.54, y: this.currentShieldY, z: -0.05 });
-    this.rightShieldBody.setNextKinematicTranslation({ x: 1.54, y: this.currentShieldY, z: -0.05 });
+    this.leftShieldBody.setNextKinematicTranslation({ x: -1.84, y: this.currentShieldY, z: -0.05 });
+    this.rightShieldBody.setNextKinematicTranslation({ x: 1.84, y: this.currentShieldY, z: -0.05 });
 
     // 4. Run Physics Step
     this.world.step();
@@ -679,10 +679,10 @@ export class PhysicsWorld {
       if (coin.passedGate) return;
       const pos = coin.body.translation();
       const dist = Math.hypot(pos.x - gatePos.x, pos.y - gatePos.y, pos.z - gatePos.z);
-      if (dist < 0.26) { // Difficulty: tighter gate window (was 0.40)
+      if (dist < 0.28) { // Scaled gate window
         coin.passedGate = true;
         if (this.gateCooldown <= 0) {
-          this.gateCooldown = 0.60; // Difficulty: 600ms cooldown (was 200ms)
+          this.gateCooldown = 0.60;
           if (this.onGateHit) {
             this.onGateHit({ x: pos.x, y: pos.y, z: pos.z });
           }
@@ -695,12 +695,12 @@ export class PhysicsWorld {
       this.spawnCoin(p.x + (Math.random() - 0.5) * 0.1, p.y + 0.08, p.z, true);
     });
 
-    // 6. Check Chucker Hit (at Z ~ 0.35 on shortened lower deck)
-    const chuckerPos = { x: 0, y: 0.18, z: 0.35 };
+    // 6. Check Chucker Hit (at Z ~ 0.42 on lower deck)
+    const chuckerPos = { x: 0, y: 0.18, z: 0.42 };
     this.coins.forEach(coin => {
       if (coin.hitChucker) return;
       const pos = coin.body.translation();
-      if (Math.abs(pos.x - chuckerPos.x) < 0.16 && Math.abs(pos.z - chuckerPos.z) < 0.10 && Math.abs(pos.y - chuckerPos.y) < 0.25) {
+      if (Math.abs(pos.x - chuckerPos.x) < 0.18 && Math.abs(pos.z - chuckerPos.z) < 0.10 && Math.abs(pos.y - chuckerPos.y) < 0.25) {
         coin.hitChucker = true;
         if (this.onChuckerHit) {
           this.onChuckerHit();
@@ -784,13 +784,13 @@ export class PhysicsWorld {
     this.coins.forEach(coin => {
       const pos = coin.body.translation();
 
-      // Front Payout zone: pushed forward off the shortened lower deck edge (Z > 0.8)
-      if (pos.z > 0.82 && pos.y < 0.15) {
+      // Front Payout zone: pushed forward off the lower deck edge (Z > 0.98)
+      if (pos.z > 0.98 && pos.y < 0.15) {
         payoutCount++;
         coinsToRemove.push(coin.id);
       }
       // Left/Right Side Lost Gutter
-      else if ((pos.x < -1.56 || pos.x > 1.56) && pos.y < 0.05 && pos.z > -0.9) {
+      else if ((pos.x < -1.86 || pos.x > 1.86) && pos.y < 0.05 && pos.z > -1.07) {
         sideLostCount++;
         coinsToRemove.push(coin.id);
       }
@@ -820,7 +820,7 @@ export class PhysicsWorld {
     const ballsToRemove: number[] = [];
     this.balls.forEach(ball => {
       const pos = ball.body.translation();
-      if (pos.z > 0.82 && pos.y < 0.25) {
+      if (pos.z > 0.98 && pos.y < 0.25) {
         ballsToRemove.push(ball.id);
         if (this.onBallPayout) {
           this.onBallPayout();
@@ -843,12 +843,12 @@ export class PhysicsWorld {
   /**
    * Seed field with an initial bed of thick medals across lower deck and pusher deck
    */
-  public seedInitialMedals(count = 70) {
-    // 1. Lower deck bed (Z = -0.5 to +0.6). Deck top is Y=0.15, coin half-height 0.046.
+  public seedInitialMedals(count = 100) {
+    // 1. Lower deck bed (Z = -0.6 to +0.8). Deck top is Y=0.15, coin half-height 0.046.
     const lowerCount = Math.floor(count * 0.65);
     for (let i = 0; i < lowerCount; i++) {
-      const x = (Math.random() - 0.5) * 2.4;
-      const z = -0.5 + Math.random() * 1.1;
+      const x = (Math.random() - 0.5) * 2.9;
+      const z = -0.6 + Math.random() * 1.4;
       const y = 0.20 + (i % 4) * 0.10;
       const coin = this.spawnCoin(x, y, z, true);
       if (coin) {
@@ -857,11 +857,11 @@ export class PhysicsWorld {
       }
     }
 
-    // 2. Moving pusher deck bed (Z = -1.6 to -1.1). Pusher top is Y=0.60.
+    // 2. Moving pusher deck bed (Z = -1.9 to -1.3). Pusher top is Y=0.60.
     const pusherCount = count - lowerCount;
     for (let i = 0; i < pusherCount; i++) {
-      const x = (Math.random() - 0.5) * 2.2;
-      const z = -1.6 + Math.random() * 0.5;
+      const x = (Math.random() - 0.5) * 2.7;
+      const z = -1.9 + Math.random() * 0.6;
       const y = 0.66 + (i % 3) * 0.10;
       const coin = this.spawnCoin(x, y, z, true);
       if (coin) {

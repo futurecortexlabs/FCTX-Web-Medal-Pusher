@@ -129,7 +129,7 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
 
   // Tower Summon Button
   btnTower.addEventListener('click', () => {
-    physics.spawnMedalTower(0, -1.35);
+    physics.spawnMedalTower(0, -1.55);
     sound.playTowerCollapse();
     game.showAlert('🏰 メダルタワー召喚', '中央に50枚タワーを召喚しました！');
   });
@@ -158,9 +158,9 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
     } else if (e.code === 'KeyS') {
       game.performShake();
     } else if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-      game.setShooterX(Math.max(-1.0, game.shooterX / 1.15 - 0.15));
+      game.setShooterX(Math.max(-1.0, game.shooterX / 1.40 - 0.15));
     } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-      game.setShooterX(Math.min(1.0, game.shooterX / 1.15 + 0.15));
+      game.setShooterX(Math.min(1.0, game.shooterX / 1.40 + 0.15));
     } else if (e.code === 'KeyC') {
       if (game.isCrounActive()) {
         game.toggleCrounCameraView();
