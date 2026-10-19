@@ -301,6 +301,7 @@ export class GameManager {
 
     this.renderer.setWinningPocket(null);
     this.renderer.setCrounCamera(true);
+    document.body.classList.add('croun-active');
     this.elCrounOverlay.classList.remove('hidden');
     this.updateCrounViewButtonText();
     if (this.elBtnCrounSkip) {
@@ -434,6 +435,7 @@ export class GameManager {
     this.crounReturnTimer = window.setTimeout(() => {
       this.crounReturnTimer = null;
       this.elCrounOverlay.classList.add('hidden');
+      document.body.classList.remove('croun-active');
       this.renderer.setCrounCamera(false);
       this.renderer.setWinningPocket(null);
       this.isCrounCameraOn = false;

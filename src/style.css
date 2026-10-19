@@ -531,6 +531,16 @@ html, body {
   pointer-events: none;
 }
 
+/* Hide floating roulette and gate badge during Croun Challenge */
+body.croun-active #roulette-container,
+body.croun-active #gate-badge,
+body:has(#croun-overlay:not(.hidden)) #roulette-container,
+body:has(#croun-overlay:not(.hidden)) #gate-badge {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
 .croun-tag {
   font-family: 'Orbitron', sans-serif;
   font-size: var(--fs-label);
@@ -991,78 +1001,354 @@ html, body {
 /* ============ RESPONSIVE: PHONES (portrait) ============ */
 @media (max-width: 640px) {
   :root {
-    --hud-height: 118px;
+    --hud-height: 86px;
   }
 
+  /* 1. TOP HUD: Compact 2-row layout where row 2 stats fit in a single line */
   #top-hud {
     flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 6px;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(4px + var(--safe-top)) calc(8px + var(--safe-right)) 5px calc(8px + var(--safe-left));
+    row-gap: 4px;
+    column-gap: 6px;
+    background: linear-gradient(180deg, rgba(6, 8, 20, 0.98) 0%, rgba(6, 8, 20, 0.88) 85%, transparent 100%);
   }
 
-  /* JP on its own full-width row at the top, stats below */
+  /* Row 1: Grand Jackpot full-width header */
   .jp-panel {
     order: -1;
     flex-basis: 100%;
-    padding: 3px 12px 5px;
+    width: 100%;
+    padding: 2px 8px 3px;
+    border-radius: 8px;
+    border-width: 1.5px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.35);
   }
 
-  .hud-left, .hud-right {
-    flex: 1 1 0;
+  .jp-title {
+    font-size: 10px;
+    letter-spacing: 1px;
+    line-height: 1.1;
   }
 
-  .stat-pill {
+  .jp-counter-box {
+    gap: 4px;
+  }
+
+  .currency-symbol {
+    font-size: 14px;
+  }
+
+  .digital-odometer {
+    font-size: 20px;
+    letter-spacing: 1.2px;
+  }
+
+  /* Row 2: Credit, Balls, and Fever side-by-side without wrapping */
+  .hud-left {
+    flex: 1.8 1 0;
+    gap: 5px;
     min-width: 0;
-    padding: 4px 10px;
+  }
+
+  .hud-right {
+    flex: 1.2 1 0;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+
+  .stat-pill,
+  .hud-left .stat-pill {
+    min-width: 0;
+    padding: 3px 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    flex: 1;
+  }
+
+  .pill-label,
+  .hud-left .pill-label {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+  }
+
+  .pill-val,
+  .hud-left .pill-val {
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  .hud-left .pill-val small {
+    font-size: 0.6em;
+    margin-left: 1px;
+  }
+
+  .hud-left .orb-indicators {
+    gap: 3px;
+    margin: 1px 0 0;
+  }
+
+  .hud-left .orb-slot {
+    font-size: 15px;
   }
 
   .fever-pill {
     min-width: 0;
     width: 100%;
+    padding: 3px 6px;
+    border-radius: 8px;
   }
 
+  .fever-top-row {
+    gap: 4px;
+  }
+
+  .fever-timer-label {
+    font-size: 10px;
+  }
+
+  .fever-bar-container {
+    height: 7px;
+    margin-top: 2px;
+    border-radius: 4px;
+  }
+
+  /* 2. ROULETTE CONTAINER: Positioned cleanly below HUD, compact and non-obstructive */
   #roulette-container {
-    transform: scale(0.92);
-    transform-origin: top left;
+    top: calc(var(--hud-height) + var(--safe-top) + 4px);
+    left: calc(8px + var(--safe-left));
+    transform: none;
+    width: auto;
+    max-width: 148px;
   }
 
+  .stock-container {
+    padding: 3px 6px;
+    gap: 5px;
+    margin-bottom: 3px;
+    border-radius: 8px;
+    border-width: 1px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+
+  .stock-label {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+
+  .stock-lamps {
+    gap: 3px;
+  }
+
+  .stock-dot {
+    width: 8px;
+    height: 8px;
+    border-width: 1px;
+  }
+
+  .roulette-frame {
+    padding: 4px 6px 5px;
+    border-radius: 10px;
+    border-width: 1.5px;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+  }
+
+  .reels-window {
+    padding: 3px 5px;
+    gap: 4px;
+    border-radius: 6px;
+    border-width: 1px;
+  }
+
+  .reel {
+    width: 36px;
+    height: 42px;
+    border-radius: 5px;
+  }
+
+  .reel-symbol {
+    font-size: 24px;
+  }
+
+  .roulette-msg {
+    font-size: 10px;
+    margin-top: 3px;
+    max-width: 130px;
+    line-height: 1.15;
+  }
+
+  /* 3. MULTIPLIER GATE BADGE (Mobile) */
   .gate-badge {
+    top: calc(var(--hud-height) + var(--safe-top) + 4px);
+    right: calc(8px + var(--safe-right));
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  /* 4. ALERT BANNER (Mobile: Centered on screen, properly sized) */
+  .alert-banner {
+    top: 42%;
+    max-width: 88vw;
+    padding: 10px 18px;
+    border-width: 2px;
+    border-radius: 14px;
+  }
+
+  .alert-title {
+    font-size: 20px;
+    letter-spacing: 1px;
+  }
+
+  .alert-desc {
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  /* 5. CROUN CHALLENGE OVERLAY (Mobile) */
+  .croun-overlay {
+    top: calc(6px + var(--safe-top));
+    width: 95%;
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
+
+  .croun-tag {
+    font-size: 9px;
+  }
+
+  .croun-title {
+    font-size: 17px;
+  }
+
+  .croun-legend {
+    font-size: 10px;
+    gap: 2px 8px;
+    margin: 4px 0;
+  }
+
+  .croun-status {
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  .croun-actions {
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .croun-btn {
     padding: 4px 10px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  /* 6. BOTTOM CONTROLS (Mobile: Ergonomic and compact) */
+  #bottom-controls {
+    padding: 6px calc(8px + var(--safe-right)) calc(8px + var(--safe-bottom)) calc(8px + var(--safe-left));
+  }
+
+  .aim-track-container {
+    width: 96%;
+    margin-bottom: 6px;
+    padding-top: 0;
   }
 
   .aim-hint {
-    font-size: 12px;
+    font-size: 11px;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .aim-track {
+    height: 16px;
+    border-radius: 8px;
+  }
+
+  .aim-needle {
+    font-size: 20px;
+    top: -10px;
   }
 
   .controls-row {
-    width: 100%;
-    gap: 8px;
+    width: 96%;
+    gap: 6px;
   }
 
   .btn-shake {
-    min-width: 78px;
-    padding: 6px 8px;
+    min-width: 66px;
+    height: 56px;
+    min-height: 56px;
+    padding: 4px 6px;
+    border-radius: 10px;
+  }
+
+  .btn-shake .btn-icon {
+    font-size: 16px;
+  }
+
+  .btn-shake .btn-main {
+    font-size: 10px;
+  }
+
+  .btn-shake .btn-sub {
+    font-size: 9px;
   }
 
   .btn-drop {
-    height: 64px;
+    height: 56px;
+    border-radius: 28px;
+  }
+
+  .btn-drop-title {
+    font-size: 17px;
+  }
+
+  .btn-drop-sub {
+    font-size: 10px;
+  }
+
+  .side-utils {
+    gap: 4px;
   }
 
   .util-btn {
-    min-width: 42px;
-    padding: 4px 6px;
+    min-width: 36px;
+    min-height: 26px;
+    padding: 2px 4px;
+    font-size: 11px;
+    border-radius: 8px;
   }
 }
 
 /* Short landscape screens (phones sideways): compress vertical space */
 @media (max-height: 480px) and (orientation: landscape) {
   :root {
-    --hud-height: 64px;
+    --hud-height: 52px;
   }
 
   #top-hud {
-    padding-top: calc(4px + var(--safe-top));
-    padding-bottom: 4px;
+    padding-top: calc(2px + var(--safe-top));
+    padding-bottom: 2px;
+    flex-wrap: nowrap;
+    row-gap: 0;
+  }
+
+  .jp-panel {
+    order: 0;
+    flex-basis: auto;
+    width: auto;
+    padding: 2px 8px;
+  }
+
+  .digital-odometer {
+    font-size: 17px;
   }
 
   .aim-hint {
@@ -1070,16 +1356,25 @@ html, body {
   }
 
   .aim-track-container {
-    margin-bottom: 6px;
+    margin-bottom: 3px;
   }
 
   .btn-drop, .btn-shake {
-    height: 54px;
-    min-height: 54px;
+    height: 46px;
+    min-height: 46px;
   }
 
   #roulette-container {
-    transform: scale(0.85);
-    transform-origin: top left;
+    top: calc(var(--hud-height) + var(--safe-top) + 2px);
+    max-width: 120px;
+  }
+
+  .reel {
+    width: 28px;
+    height: 32px;
+  }
+
+  .reel-symbol {
+    font-size: 18px;
   }
 }
