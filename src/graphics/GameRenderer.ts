@@ -67,9 +67,11 @@ export class GameRenderer {
     this.scene.background = new THREE.Color(0x060814);
     this.scene.fog = new THREE.FogExp2(0x060814, 0.04);
 
+    const aspect = window.innerWidth / window.innerHeight;
+    const initialFov = aspect < 0.75 ? Math.min(80, 55 * (0.75 / Math.max(aspect, 0.45))) : 55;
     this.camera = new THREE.PerspectiveCamera(
-      55,
-      window.innerWidth / window.innerHeight,
+      initialFov,
+      aspect,
       0.1,
       50
     );
@@ -765,7 +767,13 @@ export class GameRenderer {
   }
 
   private onWindowResize() {
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    const aspect = window.innerWidth / window.innerHeight;
+    this.camera.aspect = aspect;
+    if (aspect < 0.75) {
+      this.camera.fov = Math.min(80, 55 * (0.75 / Math.max(aspect, 0.45)));
+    } else {
+      this.camera.fov = 55;
+    }
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }

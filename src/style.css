@@ -39,7 +39,7 @@ html, body {
   overflow: hidden;
   background-color: var(--bg-dark);
   color: #fff;
-  font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Segoe UI', 'Meiryo', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -154,7 +154,7 @@ html, body {
 }
 
 .pill-val small {
-  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   font-size: 0.6em;
   color: #cbd5e1;
   margin-left: 2px;
@@ -181,10 +181,12 @@ html, body {
   100% { transform: scale(1); }
 }
 
-/* ORB INDICATORS */
+/* ORB INDICATORS (Glossy Arcade Crystal Spheres) */
 .orb-indicators {
   display: flex;
-  gap: 6px;
+  gap: 7px;
+  align-items: center;
+  justify-content: center;
   margin: 2px 0;
 }
 
@@ -194,21 +196,30 @@ html, body {
 }
 
 .orb-slot {
-  font-size: 20px;
-  line-height: 1;
-  color: #334155;
-  transition: all 0.3s ease;
-  text-shadow: none;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #475569 0%, #1e293b 80%);
+  border: 1.5px solid #64748b;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 4px rgba(0, 0, 0, 0.5);
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
 }
 
 .hud-left .orb-slot {
-  font-size: 26px;
+  width: 22px;
+  height: 22px;
 }
 
 .orb-slot.active {
-  color: #c084fc;
-  text-shadow: 0 0 8px #c084fc, 0 0 16px #e879f9;
-  transform: scale(1.15);
+  background: radial-gradient(circle at 30% 30%, #fbcfe8 0%, #e879f9 35%, #a855f7 70%, #6b21a8 100%);
+  border-color: #fdf2f8;
+  box-shadow: 0 0 10px #f472b6, 0 0 20px rgba(217, 70, 239, 0.8), inset 0 1px 2px #fff;
+  transform: scale(1.18);
 }
 
 /* JACKPOT */
@@ -430,13 +441,15 @@ html, body {
 }
 
 .roulette-msg {
-  font-size: clamp(13px, 1.1vw + 7px, 16px);
-  font-weight: 900;
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  font-size: clamp(13px, 1.1vw + 7px, 15px);
+  font-weight: 700;
   color: #fef08a;
   margin-top: 6px;
   text-align: center;
   max-width: 230px;
-  text-shadow: 0 0 4px #000, 0 1px 2px #000;
+  line-height: 1.35;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
 /* ============ 2x GATE HIT BADGE (flashes on hit only) ============ */
@@ -667,11 +680,13 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 }
 
 .aim-hint {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   font-size: var(--fs-small);
   color: #cbd5e1;
   margin-bottom: 8px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  line-height: 1.35;
   text-align: center;
 }
 
@@ -746,15 +761,17 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 }
 
 .btn-shake .btn-main {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   font-size: var(--fs-small);
-  font-weight: 900;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 .btn-shake .btn-sub {
   font-family: 'Orbitron', sans-serif;
   font-size: var(--fs-label);
   color: #34d399;
-  font-weight: 900;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
@@ -789,16 +806,20 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 }
 
 .btn-drop-title {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   font-size: clamp(20px, 1.2vw + 14px, 24px);
-  font-weight: 900;
+  font-weight: 800;
   color: #ffffff;
   letter-spacing: 1px;
+  line-height: 1.25;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
 }
 
 .btn-drop-sub {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   font-size: var(--fs-label);
-  font-weight: 800;
+  font-weight: 700;
+  line-height: 1.25;
   color: #fef9c3;
 }
 
@@ -816,8 +837,9 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   min-width: 48px;
   min-height: 32px;
   padding: 4px 8px;
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
   font-size: var(--fs-small);
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
 }
@@ -1004,57 +1026,71 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 /* ============ RESPONSIVE: PHONES (portrait) ============ */
 @media (max-width: 640px) {
   :root {
-    --hud-height: 104px;
+    --hud-height: 114px;
   }
 
-  /* 1. TOP HUD: Master 2-Row Arcade Dashboard */
+  /* 1. TOP HUD: Master 2-Row Arcade Dashboard with STRICT predictable height */
   #top-hud {
     flex-wrap: wrap;
     justify-content: center;
-    align-items: center;
-    padding: calc(6px + var(--safe-top)) calc(12px + var(--safe-right)) 6px calc(12px + var(--safe-left));
+    align-items: stretch;
+    padding: calc(6px + var(--safe-top)) calc(10px + var(--safe-right)) 6px calc(10px + var(--safe-left));
     row-gap: 6px;
     column-gap: 8px;
-    background: linear-gradient(180deg, rgba(5, 7, 18, 0.98) 0%, rgba(5, 7, 18, 0.90) 80%, transparent 100%);
+    background: linear-gradient(180deg, rgba(5, 7, 18, 0.98) 0%, rgba(5, 7, 18, 0.88) 85%, transparent 100%);
+    box-sizing: border-box;
+    height: calc(114px + var(--safe-top));
+    overflow: visible;
   }
 
   /* Row 1: Grand Jackpot Header (Centered, elegant arcade topper) */
   .jp-panel {
     order: -1;
-    flex-basis: auto;
     width: 100%;
-    max-width: 330px;
+    max-width: 320px;
     margin: 0 auto;
-    padding: 3px 14px 4px;
+    height: 44px;
+    padding: 2px 12px 3px;
     border-radius: 10px;
     border-width: 1.5px;
-    box-shadow: 0 0 14px rgba(255, 215, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
   }
 
   .jp-title {
     font-size: 11px;
-    letter-spacing: 1.5px;
-    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    line-height: 1.2;
+    color: #fff2a3;
   }
 
   .jp-counter-box {
     gap: 5px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
   }
 
   .currency-symbol {
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1;
   }
 
   .digital-odometer {
-    font-size: 22px;
-    letter-spacing: 1.8px;
-    line-height: 1.2;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    line-height: 1;
   }
 
   /* Row 2: 3-Stat Integrated Bar (Credit, Balls, Fever - perfectly synchronized) */
   .hud-left {
-    flex: 1.85 1 0;
+    flex: 2 1 0;
     gap: 6px;
     min-width: 0;
     display: flex;
@@ -1062,7 +1098,7 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .hud-right {
-    flex: 1.15 1 0;
+    flex: 1 1 0;
     min-width: 0;
     display: flex;
     align-items: stretch;
@@ -1074,51 +1110,55 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     min-width: 0;
     height: 48px;
     min-height: 48px;
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: 10px;
-    border: 1px solid rgba(56, 189, 248, 0.4);
+    border: 1px solid rgba(56, 189, 248, 0.45);
     background: rgba(13, 19, 38, 0.92);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
   }
 
   .pill-label,
   .hud-left .pill-label {
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 1px;
-    line-height: 1.25;
-    margin-bottom: 2px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    line-height: 1.2;
+    margin-bottom: 1px;
+    color: #7dd3fc;
   }
 
   .pill-val,
   .hud-left .pill-val {
-    font-size: 20px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
     line-height: 1.2;
-    font-weight: 900;
+    color: #fff;
   }
 
   .hud-left .pill-val small {
-    font-size: 12px;
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
     margin-left: 2px;
     color: #cbd5e1;
   }
 
   .hud-left .orb-indicators {
     gap: 5px;
-    margin: 2px 0 0;
+    margin-top: 2px;
   }
 
-  .orb-slot,
   .hud-left .orb-slot {
-    width: 15px;
-    height: 15px;
-    font-size: 0;
-    line-height: 0;
+    width: 16px;
+    height: 16px;
   }
 
   .fever-pill {
@@ -1126,15 +1166,16 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
     width: 100%;
     height: 48px;
     min-height: 48px;
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 10px;
-    border: 1px solid rgba(244, 63, 94, 0.45);
+    border: 1px solid rgba(244, 63, 94, 0.5);
     background: rgba(28, 14, 24, 0.92);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: stretch;
+    box-sizing: border-box;
   }
 
   .fever-top-row {
@@ -1148,88 +1189,134 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   .fever-top-row .pill-label {
     color: #f472b6;
     margin-bottom: 0;
+    font-size: 10.5px;
+    font-weight: 700;
   }
 
   .fever-timer-label {
+    font-family: 'Orbitron', sans-serif;
     font-size: 12px;
-    font-weight: 900;
+    font-weight: 800;
+    color: #fca5a5;
     line-height: 1.2;
   }
 
   .fever-bar-container {
     height: 8px;
-    margin-top: 4px;
+    margin-top: 3px;
     border-radius: 4px;
     width: 100%;
+    background: #111827;
+    border: 1px solid #374151;
   }
 
-  /* 2. ROULETTE MINI-CONSOLE (Mobile: Generous, crisp symbols and uncrushed message) */
+  /* 2. ROULETTE MINI-CONSOLE (Mobile: Positioned with GUARANTEED air gap below HUD) */
   #roulette-container {
-    top: calc(var(--hud-height) + var(--safe-top) + 8px);
+    top: calc(var(--hud-height) + var(--safe-top) + 10px);
     left: calc(10px + var(--safe-left));
-    padding: 6px 10px 8px;
-    border-radius: 14px;
-    border-width: 1.5px;
-    width: auto;
-    max-width: 172px;
+    padding: 6px 8px 7px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(245, 158, 11, 0.6);
+    background: rgba(10, 15, 30, 0.94);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 12px rgba(245, 158, 11, 0.25);
+    width: auto;
+    max-width: 164px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
   }
 
   .stock-container {
-    padding: 0 0 5px 0;
-    margin-bottom: 5px;
+    background: transparent;
+    border: none;
     border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0 0 4px 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .stock-label {
-    font-size: 11px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #7dd3fc;
     letter-spacing: 0.8px;
   }
 
   .stock-lamps {
-    gap: 3px;
+    gap: 3.5px;
+    display: flex;
   }
 
   .stock-dot {
     width: 8.5px;
     height: 8.5px;
+    border-radius: 50%;
+  }
+
+  .roulette-frame {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .reels-window {
-    padding: 4px 6px;
-    gap: 5px;
+    padding: 4px 5px;
+    gap: 4.5px;
     border-radius: 8px;
-    border-width: 1px;
+    border: 1px solid #78350f;
+    background: #000;
+    display: flex;
   }
 
   .reel {
-    width: 44px;
-    height: 52px;
+    width: 42px;
+    height: 48px;
     border-radius: 6px;
+    background: linear-gradient(180deg, #1f2937 0%, #111827 50%, #1f2937 100%);
+    border: 1px solid #4b5563;
   }
 
   .reel-symbol {
-    font-size: 28px;
+    font-size: 26px;
+    font-weight: 800;
   }
 
   .roulette-msg {
-    font-size: 12.5px;
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    font-size: 12px;
     font-weight: 700;
-    margin-top: 5px;
-    padding: 3px 6px;
-    line-height: 1.3;
-    border-radius: 5px;
-    max-width: 152px;
+    color: #fef08a;
+    margin-top: 4px;
+    padding: 0;
+    line-height: 1.35;
+    text-align: center;
+    max-width: 150px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
   }
 
   /* 3. MULTIPLIER GATE BADGE (Mobile) */
   .gate-badge {
-    top: calc(var(--hud-height) + var(--safe-top) + 8px);
+    top: calc(var(--hud-height) + var(--safe-top) + 10px);
     right: calc(10px + var(--safe-right));
-    padding: 5px 12px;
+    padding: 5px 10px;
     border-radius: 12px;
-    font-size: 12px;
-    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 700;
+    gap: 4px;
   }
 
   /* 4. ALERT BANNER (Mobile) */
@@ -1247,8 +1334,11 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .alert-desc {
-    font-size: 14px;
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
     margin-top: 4px;
+    line-height: 1.35;
   }
 
   /* 5. CROUN CHALLENGE OVERLAY (Mobile) */
@@ -1266,17 +1356,23 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .croun-title {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
     font-size: 19px;
+    font-weight: 800;
   }
 
   .croun-legend {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
     font-size: 11.5px;
+    font-weight: 700;
     gap: 4px 10px;
     margin: 8px 0;
   }
 
   .croun-status {
-    font-size: 15px;
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    font-size: 14.5px;
+    font-weight: 700;
     margin: 5px 0;
   }
 
@@ -1286,29 +1382,35 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .croun-btn {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
     padding: 6px 16px;
     font-size: 12px;
+    font-weight: 700;
     border-radius: 9px;
   }
 
   /* 6. BOTTOM CONTROLS (Mobile) */
   #bottom-controls {
-    padding: 6px calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left));
+    padding: 6px calc(10px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(10px + var(--safe-left));
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .aim-track-container {
     width: 100%;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
     padding-top: 0;
   }
 
   .aim-hint {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
     font-size: 12px;
     font-weight: 700;
     margin-bottom: 4px;
     color: #cbd5e1;
-    letter-spacing: 0.5px;
-    line-height: 1.3;
+    letter-spacing: 0.3px;
+    line-height: 1.35;
+    text-align: center;
   }
 
   .aim-track {
@@ -1325,15 +1427,20 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
 
   .controls-row {
     width: 100%;
-    gap: 8px;
+    gap: 7px;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
   }
 
   .btn-shake {
-    min-width: 72px;
+    min-width: 74px;
+    width: 74px;
     height: 60px;
     min-height: 60px;
-    padding: 4px 6px;
+    padding: 4px 4px;
     border-radius: 12px;
+    box-sizing: border-box;
   }
 
   .btn-shake .btn-icon {
@@ -1342,49 +1449,66 @@ body:has(#croun-overlay:not(.hidden)) #gate-badge {
   }
 
   .btn-shake .btn-main {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
     font-size: 12px;
     font-weight: 700;
-    line-height: 1.25;
+    line-height: 1.3;
   }
 
   .btn-shake .btn-sub {
-    font-size: 11px;
-    font-weight: 900;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10.5px;
+    font-weight: 800;
+    line-height: 1;
   }
 
   .btn-drop {
+    flex: 1;
     height: 60px;
+    min-height: 60px;
     border-radius: 30px;
+    box-sizing: border-box;
   }
 
   .btn-drop-title {
-    font-size: 20px;
-    font-weight: 900;
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    font-size: 19px;
+    font-weight: 800;
     letter-spacing: 1px;
-    line-height: 1.2;
+    line-height: 1.25;
   }
 
   .btn-drop-sub {
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
     font-size: 11px;
     font-weight: 700;
     line-height: 1.2;
+    color: #fef9c3;
   }
 
   .side-utils {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 4px;
+    width: 82px;
+    height: 60px;
+    box-sizing: border-box;
   }
 
   .util-btn {
-    min-width: 38px;
+    min-width: 0;
+    width: 100%;
     height: 28px;
     min-height: 28px;
-    padding: 0 4px;
-    font-size: 12px;
-    font-weight: 900;
+    padding: 0 2px;
+    font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+    font-size: 11.5px;
+    font-weight: 700;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
   }
 }
 

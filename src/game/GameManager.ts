@@ -570,7 +570,7 @@ export class GameManager {
     // 3. Fever Timer
     if (this.isFeverActive) {
       this.feverRemainingTime -= dt;
-      this.elFeverTimerText.textContent = `FEVER: ${Math.ceil(this.feverRemainingTime)}秒`;
+      this.elFeverTimerText.textContent = `${Math.ceil(this.feverRemainingTime)}秒`;
       if (this.feverRemainingTime <= 0) {
         this.endFeverMode();
       }
