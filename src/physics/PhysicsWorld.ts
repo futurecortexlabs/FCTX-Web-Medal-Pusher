@@ -105,7 +105,7 @@ export class PhysicsWorld {
     // Completely impenetrable: no coin can ever jump over or slip underneath!
     const upperBackDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 1.40, -2.05);
     const upperBackBody = this.world.createRigidBody(upperBackDesc);
-    const upperBackColliderDesc = RAPIER.ColliderDesc.cuboid(1.85, 1.10, 0.10)
+    const upperBackColliderDesc = RAPIER.ColliderDesc.cuboid(2.15, 1.10, 0.10)
       .setFriction(0.2)
       .setRestitution(0.05);
     this.world.createCollider(upperBackColliderDesc, upperBackBody);
@@ -115,7 +115,7 @@ export class PhysicsWorld {
       .setTranslation(0, 2.2, -3.2)
       .setRotation({ x: 0.35, y: 0, z: 0, w: 0.936 });
     const backSlopeBody = this.world.createRigidBody(backSlopeDesc);
-    const backSlopeColDesc = RAPIER.ColliderDesc.cuboid(1.9, 0.05, 0.8)
+    const backSlopeColDesc = RAPIER.ColliderDesc.cuboid(2.20, 0.05, 0.8)
       .setFriction(0.15)
       .setRestitution(0.1);
     this.world.createCollider(backSlopeColDesc, backSlopeBody);
@@ -123,31 +123,31 @@ export class PhysicsWorld {
     // Rear boundary wall (solid at Z = -4.05)
     const backWallDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 2.0, -4.05);
     const backWall = this.world.createRigidBody(backWallDesc);
-    this.world.createCollider(RAPIER.ColliderDesc.cuboid(2.2, 2.0, 0.1), backWall);
+    this.world.createCollider(RAPIER.ColliderDesc.cuboid(2.5, 2.0, 0.1), backWall);
 
-    // Continuous lower deck floor (solid from front payout Z = +1.00 all the way back to Z = -4.00)
+    // Continuous lower deck floor (solid from front payout Z = +1.00 all the way back to Z = -4.00, 4.20m wide)
     // Top surface is at Y = 0.15. Zero seams or gaps exist under or behind the moving pusher!
     const lowerDeckDesc = RAPIER.RigidBodyDesc.fixed().setTranslation(0, 0.0, -1.50);
     const lowerDeckBody = this.world.createRigidBody(lowerDeckDesc);
-    const lowerDeckColliderDesc = RAPIER.ColliderDesc.cuboid(1.80, 0.15, 2.50)
+    const lowerDeckColliderDesc = RAPIER.ColliderDesc.cuboid(2.10, 0.15, 2.50)
       .setFriction(0.26)
       .setRestitution(0.08);
     this.world.createCollider(lowerDeckColliderDesc, lowerDeckBody);
 
-    // Continuous side guide walls flanking the moving pusher (Z = -4.00 to -0.20)
+    // Continuous side guide walls flanking the moving pusher (Z = -4.00 to -0.20, at X = ±2.12)
     // Seamlessly encloses the pusher throughout its entire stroke (max front at Z = -0.35)
     // Completely prevents coins from slipping off the left or right sides!
-    const leftPusherGuide = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(-1.82, 1.15, -2.10));
+    const leftPusherGuide = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(-2.12, 1.15, -2.10));
     this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.02, 1.00, 1.90).setRestitution(0.1), leftPusherGuide);
 
-    const rightPusherGuide = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(1.82, 1.15, -2.10));
+    const rightPusherGuide = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(2.12, 1.15, -2.10));
     this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.02, 1.00, 1.90).setRestitution(0.1), rightPusherGuide);
 
-    // Side outer containment walls along front playfield (Z = -0.30 to +1.10)
-    const leftOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(-2.20, 0.8, 0.40));
+    // Side outer containment walls along front playfield (at X = ±2.55)
+    const leftOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(-2.55, 0.8, 0.40));
     this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.08, 1.2, 0.70).setRestitution(0.2), leftOuterWall);
 
-    const rightOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(2.20, 0.8, 0.40));
+    const rightOuterWall = this.world.createRigidBody(RAPIER.RigidBodyDesc.fixed().setTranslation(2.55, 0.8, 0.40));
     this.world.createCollider(RAPIER.ColliderDesc.cuboid(0.08, 1.2, 0.70).setRestitution(0.2), rightOuterWall);
   }
 
@@ -156,12 +156,12 @@ export class PhysicsWorld {
    * Bottom face of pusher collider extends to Y = 0.08 (7cm BELOW deck surface at Y = 0.15),
    * creating a completely flush impenetrable vertical wall that makes it physically impossible
    * for any coin on the lower deck to wedge or slip underneath!
-   * Length is 2.40m (front at pusherZ + 1.05, rear at pusherZ - 1.35) remaining behind scraper wall at all times.
+   * Width is 4.20m, length is 2.40m remaining behind scraper wall at all times.
    */
   private createPusher() {
     const pusherDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, 0.34, this.pusherBaseZ);
     this.pusherBody = this.world.createRigidBody(pusherDesc);
-    const pusherCollider = RAPIER.ColliderDesc.cuboid(1.80, 0.26, 1.20)
+    const pusherCollider = RAPIER.ColliderDesc.cuboid(2.10, 0.26, 1.20)
       .setTranslation(0, 0, -0.15)
       .setFriction(0.85) // High top friction moves coins forward
       .setRestitution(0.05);
@@ -172,16 +172,16 @@ export class PhysicsWorld {
    * Side Fever Shield Walls
    */
   private createShields() {
-    // Left shield (along front lower deck playfield Z = -0.20 to +0.97)
-    const leftDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(-1.84, this.currentShieldY, 0.385);
+    // Left shield (along front lower deck playfield Z = -0.20 to +0.97, X = -2.14)
+    const leftDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(-2.14, this.currentShieldY, 0.385);
     this.leftShieldBody = this.world.createRigidBody(leftDesc);
     const shieldColliderDesc = RAPIER.ColliderDesc.cuboid(0.06, 0.40, 0.585)
       .setRestitution(0.1)
       .setFriction(0.2);
     this.world.createCollider(shieldColliderDesc, this.leftShieldBody);
 
-    // Right shield
-    const rightDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(1.84, this.currentShieldY, 0.385);
+    // Right shield (X = 2.14)
+    const rightDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(2.14, this.currentShieldY, 0.385);
     this.rightShieldBody = this.world.createRigidBody(rightDesc);
     this.world.createCollider(shieldColliderDesc, this.rightShieldBody);
   }
@@ -525,8 +525,8 @@ export class PhysicsWorld {
     if (savedState.coins && savedState.coins.length > 0) {
       savedState.coins.forEach(c => {
         // Sanitize: coins must be on legitimate playing surfaces, never inside/under the pusher or in void
-        const isLowerDeck = c.y >= 0.15 && c.y <= 0.60 && c.z >= -0.35 && c.z <= 1.05 && Math.abs(c.x) <= 1.85;
-        const isUpperDeck = c.y >= 0.60 && c.y <= 1.50 && c.z >= -2.05 && c.z <= -0.30 && Math.abs(c.x) <= 1.85;
+        const isLowerDeck = c.y >= 0.15 && c.y <= 0.60 && c.z >= -0.35 && c.z <= 1.05 && Math.abs(c.x) <= 2.15;
+        const isUpperDeck = c.y >= 0.60 && c.y <= 1.50 && c.z >= -2.05 && c.z <= -0.30 && Math.abs(c.x) <= 2.15;
         if (isLowerDeck || isUpperDeck) {
           const coin = this.spawnCoin(c.x, c.y, c.z, true);
           if (coin) {
@@ -676,15 +676,15 @@ export class PhysicsWorld {
     const newPusherZ = this.pusherBaseZ + pusherOffset;
     this.pusherBody.setNextKinematicTranslation({ x: 0, y: 0.34, z: newPusherZ });
 
-    // 2. Move 2x Multiplier Gate
+    // 2. Move 2x Multiplier Gate (wider swing across 4.20m width)
     this.gateTime += dt * 1.5;
-    this.gateX = Math.sin(this.gateTime) * 1.15;
+    this.gateX = Math.sin(this.gateTime) * 1.40;
     this.gateBody.setNextKinematicTranslation({ x: this.gateX, y: 1.15, z: -1.65 });
 
-    // 3. Smoothly Animate Fever Shield
+    // 3. Smoothly Animate Fever Shield (X = ±2.14)
     this.currentShieldY += (this.targetShieldY - this.currentShieldY) * 0.1;
-    this.leftShieldBody.setNextKinematicTranslation({ x: -1.84, y: this.currentShieldY, z: 0.385 });
-    this.rightShieldBody.setNextKinematicTranslation({ x: 1.84, y: this.currentShieldY, z: 0.385 });
+    this.leftShieldBody.setNextKinematicTranslation({ x: -2.14, y: this.currentShieldY, z: 0.385 });
+    this.rightShieldBody.setNextKinematicTranslation({ x: 2.14, y: this.currentShieldY, z: 0.385 });
 
     // 4. Run Physics Step
     this.world.step();
@@ -809,8 +809,8 @@ export class PhysicsWorld {
         payoutCount++;
         coinsToRemove.push(coin.id);
       }
-      // Left/Right Side Lost Gutter (only on the front lower player deck)
-      else if ((pos.x < -1.86 || pos.x > 1.86) && pos.y < 0.05 && pos.z > -0.20) {
+      // Left/Right Side Lost Gutter (only on the front lower player deck, X beyond ±2.16)
+      else if ((pos.x < -2.16 || pos.x > 2.16) && pos.y < 0.05 && pos.z > -0.20) {
         sideLostCount++;
         coinsToRemove.push(coin.id);
       }
@@ -861,13 +861,13 @@ export class PhysicsWorld {
   }
 
   /**
-   * Seed field with an initial bed of thick medals across lower deck and pusher deck
+   * Seed field with an initial bed of thick medals across lower deck and pusher deck (wider 4.20m stage)
    */
-  public seedInitialMedals(count = 100) {
+  public seedInitialMedals(count = 120) {
     // 1. Lower deck bed (Z = -0.2 to +0.8). Deck top is Y=0.15, coin half-height 0.046.
     const lowerCount = Math.floor(count * 0.65);
     for (let i = 0; i < lowerCount; i++) {
-      const x = (Math.random() - 0.5) * 2.8;
+      const x = (Math.random() - 0.5) * 3.4;
       const z = -0.2 + Math.random() * 1.0;
       const y = 0.20 + (i % 4) * 0.08;
       const coin = this.spawnCoin(x, y, z, true);
@@ -880,7 +880,7 @@ export class PhysicsWorld {
     // 2. Moving pusher deck bed (Z = -1.85 to -1.5). Pusher top is Y=0.60.
     const pusherCount = count - lowerCount;
     for (let i = 0; i < pusherCount; i++) {
-      const x = (Math.random() - 0.5) * 2.6;
+      const x = (Math.random() - 0.5) * 3.2;
       const z = -1.85 + Math.random() * 0.35;
       const y = 0.66 + (i % 3) * 0.08;
       const coin = this.spawnCoin(x, y, z, true);

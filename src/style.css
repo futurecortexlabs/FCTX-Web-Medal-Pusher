@@ -20,7 +20,7 @@
   --fs-value: clamp(18px, 1.6vw + 10px, 24px);
   --fs-small: clamp(12px, 0.9vw + 8px, 14px);
   --fs-body: clamp(13px, 0.8vw + 9px, 15px);
-  --hud-height: 76px;
+  --hud-height: 88px;
 }
 
 * {
@@ -85,6 +85,10 @@ html, body {
   flex: 1;
 }
 
+.hud-left {
+  gap: 12px;
+}
+
 .hud-right {
   justify-content: flex-end;
 }
@@ -99,6 +103,33 @@ html, body {
   align-items: center;
   backdrop-filter: blur(4px);
   min-width: 84px;
+}
+
+/* Enlarged Top-Left Display (Credit & Balls) */
+.hud-left .stat-pill {
+  min-width: 108px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(56, 189, 248, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(56, 189, 248, 0.15);
+}
+
+.hud-left .pill-label {
+  font-size: clamp(12px, 1.2vw + 6px, 15px);
+  letter-spacing: 1.5px;
+  color: #bae6fd;
+}
+
+.hud-left .pill-val {
+  font-size: clamp(24px, 2.2vw + 10px, 32px);
+  color: #fff;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.hud-left .pill-val small {
+  font-size: 0.55em;
+  color: #94a3b8;
+  margin-left: 3px;
 }
 
 .pill-label {
@@ -154,12 +185,21 @@ html, body {
   margin: 2px 0;
 }
 
+.hud-left .orb-indicators {
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .orb-slot {
   font-size: 20px;
   line-height: 1;
   color: #334155;
   transition: all 0.3s ease;
   text-shadow: none;
+}
+
+.hud-left .orb-slot {
+  font-size: 26px;
 }
 
 .orb-slot.active {
@@ -305,92 +345,94 @@ html, body {
 }
 
 .stock-container {
-  background: rgba(10, 15, 30, 0.88);
-  border: 1px solid #38bdf8;
-  border-radius: 10px;
-  padding: 5px 10px;
+  background: rgba(10, 15, 30, 0.92);
+  border: 1.5px solid #38bdf8;
+  border-radius: 12px;
+  padding: 6px 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
+  gap: 10px;
+  margin-bottom: 6px;
   backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .stock-label {
-  font-size: var(--fs-label);
+  font-size: clamp(12px, 1.2vw + 6px, 15px);
   font-family: 'Orbitron', sans-serif;
   font-weight: 800;
   color: #7dd3fc;
+  letter-spacing: 1px;
 }
 
 .stock-lamps {
   display: flex;
-  gap: 5px;
+  gap: 6px;
 }
 
 .stock-dot {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
   border-radius: 50%;
   background: #1e293b;
-  border: 1px solid #64748b;
+  border: 1.5px solid #64748b;
   transition: all 0.2s;
 }
 
 .stock-dot.active {
   background: #38bdf8;
   border-color: #e0f2fe;
-  box-shadow: 0 0 8px #38bdf8;
-  transform: scale(1.1);
+  box-shadow: 0 0 10px #38bdf8;
+  transform: scale(1.15);
 }
 
 .roulette-frame {
   background: radial-gradient(circle, #251206 0%, #0c0803 100%);
   border: 2px solid #f59e0b;
-  border-radius: 12px;
-  padding: 6px 10px 8px;
+  border-radius: 14px;
+  padding: 8px 14px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45);
   backdrop-filter: blur(4px);
 }
 
 .reels-window {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   background: #000;
-  padding: 5px 8px;
-  border-radius: 8px;
-  border: 1px solid #78350f;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #78350f;
 }
 
 .reel {
-  width: 46px;
-  height: 52px;
+  width: 56px;
+  height: 64px;
   background: linear-gradient(180deg, #1f2937 0%, #111827 50%, #1f2937 100%);
-  border-radius: 6px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   border: 1px solid #4b5563;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.85);
 }
 
 .reel-symbol {
-  font-size: 30px;
+  font-size: 38px;
   font-weight: 900;
   line-height: 1;
 }
 
 .roulette-msg {
-  font-size: var(--fs-small);
+  font-size: clamp(13px, 1.1vw + 7px, 16px);
   font-weight: 900;
   color: #fef08a;
-  margin-top: 5px;
+  margin-top: 6px;
   text-align: center;
-  max-width: 190px;
+  max-width: 230px;
   text-shadow: 0 0 4px #000, 0 1px 2px #000;
 }
 
@@ -980,7 +1022,7 @@ html, body {
   }
 
   #roulette-container {
-    transform: scale(0.88);
+    transform: scale(0.92);
     transform-origin: top left;
   }
 
@@ -1037,7 +1079,7 @@ html, body {
   }
 
   #roulette-container {
-    transform: scale(0.8);
+    transform: scale(0.85);
     transform-origin: top left;
   }
 }

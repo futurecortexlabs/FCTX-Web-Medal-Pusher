@@ -223,8 +223,8 @@ export class GameManager {
   }
 
   public setShooterX(normX: number) {
-    // normX is -1.0 to 1.0 from UI swipe (width of pusher ~ 3.6m)
-    this.shooterX = normX * 1.40;
+    // normX is -1.0 to 1.0 from UI swipe (width of pusher ~ 4.20m)
+    this.shooterX = normX * 1.70;
     const pct = ((normX + 1.0) / 2.0) * 100;
     this.elAimNeedle.style.left = `${pct}%`;
     this.renderer.updateShooterPosition(this.shooterX);
@@ -502,7 +502,7 @@ export class GameManager {
         this.sound.playRouletteWin();
         this.credits += 15;
         for (let i = 0; i < 6; i++) {
-          this.physics.spawnCoin((Math.random() - 0.5) * 1.8, 1.35, -1.65, true);
+          this.physics.spawnCoin((Math.random() - 0.5) * 2.4, 1.35, -1.65, true);
         }
       } else if (roll < 0.86) {
         // 🏰 タワー召喚マス (6%)
@@ -520,7 +520,7 @@ export class GameManager {
           this.sound.playRouletteWin();
           this.credits += 25;
           for (let i = 0; i < 10; i++) {
-            this.physics.spawnCoin((Math.random() - 0.5) * 1.8, 1.35, -1.65, true);
+            this.physics.spawnCoin((Math.random() - 0.5) * 2.4, 1.35, -1.65, true);
           }
         } else {
           this.setReelSymbols('🔮', '🔮', '🔮');
