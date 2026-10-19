@@ -192,7 +192,7 @@ export class PhysicsWorld {
   private create2xGate() {
     const gateDesc = RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(0, 1.15, -1.65);
     this.gateBody = this.world.createRigidBody(gateDesc);
-    const gateColDesc = RAPIER.ColliderDesc.cuboid(0.40, 0.3, 0.2)
+    const gateColDesc = RAPIER.ColliderDesc.cuboid(0.24, 0.20, 0.15)
       .setSensor(true);
     this.gateCollider = this.world.createCollider(gateColDesc, this.gateBody);
   }
@@ -698,8 +698,11 @@ export class PhysicsWorld {
     this.coins.forEach(coin => {
       if (coin.passedGate) return;
       const pos = coin.body.translation();
-      const dist = Math.hypot(pos.x - gatePos.x, pos.y - gatePos.y, pos.z - gatePos.z);
-      if (dist < 0.28) { // Scaled gate window
+      if (
+        Math.abs(pos.x - gatePos.x) < 0.22 &&
+        Math.abs(pos.y - gatePos.y) < 0.22 &&
+        Math.abs(pos.z - gatePos.z) < 0.20
+      ) {
         coin.passedGate = true;
         if (this.gateCooldown <= 0) {
           this.gateCooldown = 0.60;

@@ -278,23 +278,43 @@ export class GameRenderer {
       roughness: 0.2,
     });
 
-    const leftPost = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5), archMat);
-    leftPost.position.set(-0.35, 0, 0);
-    const rightPost = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5), archMat);
-    rightPost.position.set(0.35, 0, 0);
-    const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.74, 0.08, 0.08), archMat);
-    topBar.position.set(0, 0.25, 0);
+    // Compact arch posts (narrower & sleeker opening)
+    const leftPost = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.36), archMat);
+    leftPost.position.set(-0.24, 0, 0);
+    const rightPost = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.36), archMat);
+    rightPost.position.set(0.24, 0, 0);
+    const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.53, 0.06, 0.06), archMat);
+    topBar.position.set(0, 0.18, 0);
 
-    // Glowing badge in center
-    const badgeMat = new THREE.MeshBasicMaterial({ color: 0x34d399 });
-    const sign = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.16, 0.02), badgeMat);
-    sign.position.set(0, 0.25, 0.04);
+    // Glowing badge in center with crisp dynamic "×2" label
+    const badgeCanvas = document.createElement('canvas');
+    badgeCanvas.width = 256;
+    badgeCanvas.height = 128;
+    const ctx = badgeCanvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#064e3b';
+      ctx.fillRect(0, 0, 256, 128);
+      ctx.lineWidth = 10;
+      ctx.strokeStyle = '#34d399';
+      ctx.strokeRect(6, 6, 244, 116);
+      ctx.font = '900 80px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Impact", sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = '#10b981';
+      ctx.shadowBlur = 16;
+      ctx.fillText('×2', 128, 64);
+    }
+    const badgeTexture = new THREE.CanvasTexture(badgeCanvas);
+    const badgeMat = new THREE.MeshBasicMaterial({ map: badgeTexture });
+    const sign = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.11, 0.02), badgeMat);
+    sign.position.set(0, 0.18, 0.035);
 
     this.gateMesh.add(leftPost);
     this.gateMesh.add(rightPost);
     this.gateMesh.add(topBar);
     this.gateMesh.add(sign);
-    this.gateMesh.position.set(0, 1.15, -1.35);
+    this.gateMesh.position.set(0, 1.15, -1.65);
     this.scene.add(this.gateMesh);
   }
 
