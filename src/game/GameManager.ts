@@ -412,7 +412,7 @@ export class GameManager {
         ? '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!! [即時確定]'
         : '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!!';
       this.credits += 100;
-      this.physics.spawnMedalTower(0, -1.55);
+      this.physics.spawnMedalTower(0, -1.65);
       this.sound.playTowerCollapse();
       try {
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
@@ -509,7 +509,7 @@ export class GameManager {
         this.setReelSymbols('🏰', '🏰', '🏰');
         this.elRouletteMsg.textContent = '🏰 タワー召喚マス当選！';
         this.sound.playTowerCollapse();
-        this.physics.spawnMedalTower(0, -1.55);
+        this.physics.spawnMedalTower(0, -1.65);
         this.showAlert('🏰 TOWER SUMMON!', '中央に50枚メダルタワーを召喚！');
       } else if (roll < 0.97) {
         // 🔮 カラーボール出現 (11%)
@@ -526,7 +526,7 @@ export class GameManager {
           this.setReelSymbols('🔮', '🔮', '🔮');
           this.elRouletteMsg.textContent = '🔮 カラーボール落下！';
           this.sound.playOrbDrop();
-          this.physics.spawnBall(0, 1.45, -1.60);
+          this.physics.spawnBall(0, 1.45, -1.65);
         }
       } else {
         // 🔥 JPチャレンジ突入 (3%)
@@ -661,7 +661,7 @@ export class GameManager {
   public saveState() {
     try {
       const state: GameSaveState = {
-        version: 2,
+        version: 3,
         credits: this.credits,
         jackpot: this.jackpotAmount,
         feverCount: this.feverCount,
@@ -687,8 +687,8 @@ export class GameManager {
         this.collectedBalls = Math.min(Math.max(0, Math.floor(num(state.ballCount, 0))), 2);
         this.chuckerStock = Math.min(Math.max(0, Math.floor(num(state.chuckerStock, 0))), 8);
 
-        // If saved under version 2 (matching new stage dimensions), restore directly; otherwise seed clean bed
-        if (state.version === 2 && state.boardState && state.boardState.coins && state.boardState.coins.length > 0) {
+        // If saved under version 3 (matching sealed floor and deep pusher), restore directly; otherwise seed clean bed
+        if (state.version === 3 && state.boardState && state.boardState.coins && state.boardState.coins.length > 0) {
           this.physics.restoreBoardState(state.boardState);
         } else {
           this.physics.seedInitialMedals(100);

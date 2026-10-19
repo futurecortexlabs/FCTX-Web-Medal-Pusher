@@ -129,7 +129,7 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
 
   // Tower Summon Button
   btnTower.addEventListener('click', () => {
-    physics.spawnMedalTower(0, -1.55);
+    physics.spawnMedalTower(0, -1.65);
     sound.playTowerCollapse();
     game.showAlert('🏰 メダルタワー召喚', '中央に50枚タワーを召喚しました！');
   });

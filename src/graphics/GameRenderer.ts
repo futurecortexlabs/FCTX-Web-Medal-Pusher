@@ -155,19 +155,19 @@ export class GameRenderer {
       metalness: 0.85,
     });
 
-    // Lower Deck platform (3.6m x 2.04m, matches physics cuboid 1.8 x 0.15 x 1.02 at Y=0 → top surface Y=0.15)
-    const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 2.04), deckMat);
-    lowerDeck.position.set(0, 0.0, -0.05);
+    // Continuous lower deck platform (3.6m wide x 4.24m long, completely sealed from Z = +0.97 to Z = -3.27)
+    const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 4.24), deckMat);
+    lowerDeck.position.set(0, 0.0, -1.15);
     lowerDeck.receiveShadow = true;
     this.scene.add(lowerDeck);
 
-    // Lower deck glowing side trims
+    // Lower deck glowing side trims (along front playfield)
     const trimMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-    const leftTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 2.04), trimMat);
-    leftTrim.position.set(-1.80, 0.16, -0.05);
+    const leftTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.37), trimMat);
+    leftTrim.position.set(-1.80, 0.16, 0.285);
     this.scene.add(leftTrim);
-    const rightTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 2.04), trimMat);
-    rightTrim.position.set(1.80, 0.16, -0.05);
+    const rightTrim = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 1.37), trimMat);
+    rightTrim.position.set(1.80, 0.16, 0.285);
     this.scene.add(rightTrim);
 
     // Front Payout Edge Glow Bar (at Z = 0.97)
@@ -176,18 +176,29 @@ export class GameRenderer {
     payoutBar.position.set(0, 0.15, 0.97);
     this.scene.add(payoutBar);
 
-    // Upper stationary rear pusher back-wall (3.8m x 0.8m at Z = -2.27)
-    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.8, 0.2), deckMat);
-    upperBack.position.set(0, 0.8, -2.27);
+    // Stationary rear scraper wall (flush on top of moving deck at Y=0.60, Z = -2.05)
+    const scraperMat = new THREE.MeshStandardMaterial({ color: 0xffea00, roughness: 0.2, metalness: 0.9 });
+    const upperBack = new THREE.Mesh(new THREE.BoxGeometry(3.64, 1.0, 0.16), scraperMat);
+    upperBack.position.set(0, 1.10, -2.05);
     upperBack.receiveShadow = true;
     this.scene.add(upperBack);
 
     // Upper back slope / feeder guide
     const slopeMat = new THREE.MeshStandardMaterial({ color: 0x111625, roughness: 0.3, metalness: 0.6 });
-    const backSlope = new THREE.Mesh(new THREE.BoxGeometry(3.8, 0.1, 1.4), slopeMat);
-    backSlope.position.set(0, 1.4, -2.8);
+    const backSlope = new THREE.Mesh(new THREE.BoxGeometry(3.64, 0.1, 1.4), slopeMat);
+    backSlope.position.set(0, 1.9, -2.8);
     backSlope.rotation.x = 2 * Math.asin(0.35);
     this.scene.add(backSlope);
+
+    // Pusher side guide walls (flush flanking the moving pusher to prevent side spillage)
+    const guideMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.3, metalness: 0.8 });
+    const leftGuide = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.5, 2.8), guideMat);
+    leftGuide.position.set(-1.82, 0.90, -1.80);
+    this.scene.add(leftGuide);
+
+    const rightGuide = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.5, 2.8), guideMat);
+    rightGuide.position.set(1.82, 0.90, -1.80);
+    this.scene.add(rightGuide);
 
     // Outer Cabinet Frame
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x0a0f1d, roughness: 0.4, metalness: 0.7 });
@@ -217,27 +228,27 @@ export class GameRenderer {
   }
 
   private setupPusherAndShields() {
-    // Kinematic Pusher body (width 3.6m, height 0.44m, length 1.44m)
-    const pusherGeo = new THREE.BoxGeometry(3.6, 0.44, 1.44);
+    // Deep Kinematic Pusher body (width 3.6m, height 0.44m, length 2.10m)
+    const pusherGeo = new THREE.BoxGeometry(3.6, 0.44, 2.10);
     const pusherMat = new THREE.MeshStandardMaterial({
       color: 0x22283e,
       metalness: 0.8,
       roughness: 0.3,
     });
     this.pusherMesh = new THREE.Mesh(pusherGeo, pusherMat);
-    this.pusherMesh.position.set(0, 0.38, -1.55);
+    this.pusherMesh.position.set(0, 0.38, -1.90);
     this.pusherMesh.castShadow = true;
     this.pusherMesh.receiveShadow = true;
 
-    // Glowing front LED strip on pusher
+    // Glowing front LED strip on pusher front face (at Z = +1.05 relative to center)
     const ledMat = new THREE.MeshBasicMaterial({ color: 0xff8800 });
     const frontLed = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.06, 0.04), ledMat);
-    frontLed.position.set(0, 0.12, 0.73);
+    frontLed.position.set(0, 0.12, 1.05);
     this.pusherMesh.add(frontLed);
     this.scene.add(this.pusherMesh);
 
-    // Fever Golden Shields (Left & Right)
-    const shieldGeo = new THREE.BoxGeometry(0.12, 0.8, 2.04);
+    // Fever Golden Shields (Left & Right along front deck)
+    const shieldGeo = new THREE.BoxGeometry(0.12, 0.8, 1.37);
     const shieldMat = new THREE.MeshStandardMaterial({
       color: 0xffd700,
       metalness: 0.95,
@@ -246,11 +257,11 @@ export class GameRenderer {
     });
 
     this.leftShieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-    this.leftShieldMesh.position.set(-1.84, -1.0, -0.05);
+    this.leftShieldMesh.position.set(-1.84, -1.0, 0.285);
     this.scene.add(this.leftShieldMesh);
 
     this.rightShieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
-    this.rightShieldMesh.position.set(1.84, -1.0, -0.05);
+    this.rightShieldMesh.position.set(1.84, -1.0, 0.285);
     this.scene.add(this.rightShieldMesh);
   }
 
