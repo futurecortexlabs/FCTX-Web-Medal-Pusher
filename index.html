@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#070913" />
   <title>GRAND FORTUNE PUSHER - 進化版Webメダルプッシャー</title>
   <link rel="stylesheet" href="./src/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -78,10 +79,10 @@
       </div>
     </div>
 
-    <!-- Multiplier Gate HUD Badge -->
-    <div id="gate-badge" class="gate-badge">
+    <!-- Multiplier Gate HUD Badge (flashes when a medal passes the 2x gate) -->
+    <div id="gate-badge" class="gate-badge" aria-live="polite">
       <span class="badge-icon">🎯</span>
-      <span class="badge-text">2x GATE ACTIVE</span>
+      <span class="badge-text">2x GATE HIT!</span>
     </div>
 
     <!-- Notification Toast / Big Center Alert -->
@@ -102,6 +103,14 @@
         <span class="legend-item rainbow">🌈 GRAND JACKPOT (1穴)</span>
       </div>
       <div id="croun-status" class="croun-status">鉄球投入中...</div>
+      <div class="croun-actions">
+        <button id="btn-croun-view" class="croun-btn croun-btn-view" title="盤面視点とクルーン視点を切り替えます" aria-label="視点切り替え">
+          👁️ 盤面視点へ
+        </button>
+        <button id="btn-croun-skip" class="croun-btn croun-btn-skip" title="抽選を即時確定して盤面に戻ります" aria-label="スキップ">
+          ▶▶ スキップ
+        </button>
+      </div>
     </div>
 
     <!-- Bottom Controls & Swipe Area -->
@@ -134,10 +143,10 @@
 
         <!-- Side Utilities (Audio, Tower Summon, Reset) -->
         <div class="side-utils">
-          <button id="btn-sound" class="util-btn" title="サウンド切り替え">🔊</button>
-          <button id="btn-add-credits" class="util-btn" title="メダル補充 (+50枚)">🪙+50</button>
-          <button id="btn-tower" class="util-btn" title="タワー召喚テスト">🏰</button>
-          <button id="btn-help" class="util-btn" title="ヘルプ / 仕様書">❓</button>
+          <button id="btn-sound" class="util-btn" title="サウンド切り替え" aria-label="サウンド切り替え">🔊</button>
+          <button id="btn-add-credits" class="util-btn" title="メダル補充 (+50枚)" aria-label="メダル補充 50枚">🪙+50</button>
+          <button id="btn-tower" class="util-btn" title="タワー召喚テスト" aria-label="タワー召喚">🏰</button>
+          <button id="btn-help" class="util-btn" title="ヘルプ / 遊び方" aria-label="ヘルプ">❓</button>
         </div>
       </div>
     </footer>
@@ -157,7 +166,7 @@
       <div class="modal-card">
         <div class="modal-header">
           <h2>ゲーム仕様・遊び方</h2>
-          <button id="modal-close" class="modal-close-btn">&times;</button>
+          <button id="modal-close" class="modal-close-btn" aria-label="閉じる">&times;</button>
         </div>
         <div class="modal-body">
           <section>
@@ -165,13 +174,25 @@
             <p>画面下部のスワイプでメダル投入の左右照準を調整し、タップまたは長押しでメダルを連続投入します。プッシャー板が前後に往復し、メダルを手前の獲得口へ押し出します。</p>
           </section>
           <section>
+            <h3>⌨️ キーボード操作</h3>
+            <ul>
+              <li><kbd>Space</kbd> メダル投入（長押しで連射）</li>
+              <li><kbd>←</kbd><kbd>→</kbd> / <kbd>A</kbd><kbd>D</kbd> 投下位置の移動</li>
+              <li><kbd>S</kbd> 台揺らし</li>
+              <li><kbd>C</kbd> クルーン抽選中の視点切替（盤面 ⇔ クルーン）</li>
+              <li><kbd>X</kbd> / <kbd>Enter</kbd> クルーン抽選の即時スキップ</li>
+              <li><kbd>Esc</kbd> このヘルプを閉じる</li>
+            </ul>
+          </section>
+          <section>
             <h3>🎰 2段階抽選システム</h3>
             <ul>
               <li><strong>第1段階（デジタルルーレット）</strong>: フィールド中央手前のチャッカーに入賞すると回転（最大8保留）。</li>
-              <li>💀 <strong>ハズレ (45%)</strong>: フィーバーゲージ蓄積（10回でフィーバー発動！）</li>
-              <li>🪙 <strong>小当たり (30%)</strong>: メダル15枚払い出し</li>
-              <li>🔮 <strong>ボール出現 (15%)</strong>: フィールドにカラーボール投下</li>
-              <li>🔥 <strong>JPチャレンジ突入 (10%)</strong>: 物理クルーン抽選へ直撃！</li>
+              <li>💀 <strong>ハズレ (48%)</strong>: フィーバーゲージ蓄積（10回でフィーバー発動！）</li>
+              <li>🪙 <strong>小当たり (32%)</strong>: メダル15枚払い出し</li>
+              <li>🏰 <strong>タワー召喚マス (6%)</strong>: 50枚メダルタワーを盤面に召喚！</li>
+              <li>🔮 <strong>ボール出現 (11%)</strong>: フィールドにカラーボール投下（盤面最大2個、満杯時は25枚ボーナス）</li>
+              <li>🔥 <strong>JPチャレンジ直撃 (3%)</strong>: 物理クルーン抽選へ直撃！</li>
             </ul>
           </section>
           <section>

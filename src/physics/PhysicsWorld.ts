@@ -572,6 +572,41 @@ export class PhysicsWorld {
   }
 
   /**
+   * Force instant Croun resolution (e.g. when player clicks Skip)
+   */
+  public forceResolveCroun(): '50' | '100_tower' | 'jp' {
+    let winner = this.crounWinner;
+    if (!winner) {
+      if (this.crounBall) {
+        const bPos = this.crounBall.body.translation();
+        let minDist = 999;
+        let closest = this.crounPockets[0];
+        for (const p of this.crounPockets) {
+          const d = Math.hypot(bPos.x - p.position.x, bPos.z - p.position.z);
+          if (d < minDist) {
+            minDist = d;
+            closest = p;
+          }
+        }
+        winner = closest;
+      } else {
+        winner = this.crounPockets[Math.floor(Math.random() * this.crounPockets.length)];
+      }
+    }
+
+    const type = winner.type;
+    this.isCrounActive = false;
+    this.crounWinner = null;
+    this.crounLockTimer = 0;
+    if (this.crounBall) {
+      try { this.world.removeCollider(this.crounBall.collider, false); } catch (_) {}
+      try { this.world.removeRigidBody(this.crounBall.body); } catch (_) {}
+      this.crounBall = null;
+    }
+    return type;
+  }
+
+  /**
    * Apply Shake Impulse to Field
    */
   public applyShakeImpulse() {
@@ -687,7 +722,7 @@ export class PhysicsWorld {
           const dist = Math.hypot(bPos.x - pocket.position.x, bPos.z - pocket.position.z);
           if (dist < 0.28 && bPos.y <= pocket.position.y + 0.22 && speed < 2.2) {
             this.crounWinner = pocket;
-            this.crounLockTimer = 2.4;
+            this.crounLockTimer = 1.5;
             if (this.onCrounLockIn) {
               this.onCrounLockIn(pocket.type, pocket.index);
             }
@@ -707,7 +742,7 @@ export class PhysicsWorld {
             }
           }
           this.crounWinner = closestPocket;
-          this.crounLockTimer = 2.4;
+          this.crounLockTimer = 1.5;
           if (this.onCrounLockIn) {
             this.onCrounLockIn(closestPocket.type, closestPocket.index);
           }
@@ -717,7 +752,7 @@ export class PhysicsWorld {
         if (!this.crounWinner && bPos.y < this.crounCenter.y - 1.5) {
           const randomPocket = this.crounPockets[Math.floor(Math.random() * this.crounPockets.length)];
           this.crounWinner = randomPocket;
-          this.crounLockTimer = 2.4;
+          this.crounLockTimer = 1.5;
           if (this.onCrounLockIn) {
             this.onCrounLockIn(randomPocket.type, randomPocket.index);
           }

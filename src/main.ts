@@ -161,6 +161,16 @@ function setupControls(game: GameManager, sound: SoundManager, physics: PhysicsW
       game.setShooterX(Math.max(-1.0, game.shooterX / 1.15 - 0.15));
     } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
       game.setShooterX(Math.min(1.0, game.shooterX / 1.15 + 0.15));
+    } else if (e.code === 'KeyC') {
+      if (game.isCrounActive()) {
+        game.toggleCrounCameraView();
+      }
+    } else if (e.code === 'KeyX' || e.code === 'Enter') {
+      if (game.isCrounActive()) {
+        game.skipCrounChallenge();
+      }
+    } else if (e.code === 'Escape') {
+      helpModal.classList.add('hidden');
     }
   });
 

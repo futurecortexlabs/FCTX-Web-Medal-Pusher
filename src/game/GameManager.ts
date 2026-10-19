@@ -37,11 +37,16 @@ export class GameManager {
   // Digital Roulette System
   public chuckerStock: number = 0; // 0 to 8
   private isRouletteSpinning: boolean = false;
-  private rouletteReelSymbols = ['💀', '🪙', '🔮', '🔥', '🏰', '🪙', '💀', '🔮', '🔥', '🏰'];
+  private rouletteReelSymbols = ['💀', '🪙', '💀', '🪙', '🔮', '💀', '🏰', '🪙', '💀', '🔥', '🪙', '🔮'];
 
   // Croun sequence guard (covers intro → roll → lock-in → payout camera return)
   private isCrounSequenceActive = false;
+  private isCrounCameraOn = false;
   private pendingCrounCauses: string[] = [];
+
+  public isCrounActive(): boolean {
+    return this.isCrounSequenceActive;
+  }
 
   // Input & Shooter
   public shooterX: number = 0; // -1.3 to +1.3
@@ -66,6 +71,10 @@ export class GameManager {
   private elAlertDesc!: HTMLElement;
   private elCrounOverlay!: HTMLElement;
   private elCrounStatus!: HTMLElement;
+  private elBtnCrounSkip!: HTMLElement;
+  private elBtnCrounView!: HTMLElement;
+  private crounIntroTimer: number | null = null;
+  private crounReturnTimer: number | null = null;
   private elTiltScreen!: HTMLElement;
   private elTiltTimer!: HTMLElement;
 
@@ -108,8 +117,23 @@ export class GameManager {
     this.elAlertDesc = document.getElementById('alert-desc')!;
     this.elCrounOverlay = document.getElementById('croun-overlay')!;
     this.elCrounStatus = document.getElementById('croun-status')!;
+    this.elBtnCrounSkip = document.getElementById('btn-croun-skip')!;
+    this.elBtnCrounView = document.getElementById('btn-croun-view')!;
     this.elTiltScreen = document.getElementById('tilt-screen')!;
     this.elTiltTimer = document.getElementById('tilt-timer')!;
+
+    if (this.elBtnCrounSkip) {
+      this.elBtnCrounSkip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.skipCrounChallenge();
+      });
+    }
+    if (this.elBtnCrounView) {
+      this.elBtnCrounView.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleCrounCameraView();
+      });
+    }
   }
 
   private bindPhysicsEvents() {
@@ -267,23 +291,64 @@ export class GameManager {
    * Croun Challenge (Physical Roulette Stage 2)
    */
   public triggerCrounChallenge(cause: string) {
-    // The whole sequence (intro 1.5s → roll → 2.4s lock-in → 3.8s payout) is guarded.
-    // physics.isCrounActive alone is insufficient: it is false during intro and payout.
     if (this.isCrounSequenceActive) {
       this.pendingCrounCauses.push(cause);
       return;
     }
     this.isCrounSequenceActive = true;
+    this.isCrounCameraOn = true;
 
     this.renderer.setWinningPocket(null);
     this.renderer.setCrounCamera(true);
     this.elCrounOverlay.classList.remove('hidden');
+    this.updateCrounViewButtonText();
+    if (this.elBtnCrounSkip) {
+      this.elBtnCrounSkip.removeAttribute('disabled');
+      this.elBtnCrounSkip.textContent = '▶▶ スキップ (X)';
+    }
     this.elCrounStatus.textContent = `${cause} 物理クルーン抽選中...`;
     this.sound.playRouletteTick();
 
-    setTimeout(() => {
+    if (this.crounIntroTimer !== null) {
+      clearTimeout(this.crounIntroTimer);
+    }
+    // Snappy launch (400ms instead of 1500ms)
+    this.crounIntroTimer = window.setTimeout(() => {
+      this.crounIntroTimer = null;
       this.physics.launchCrounBall();
-    }, 1500);
+    }, 400);
+  }
+
+  public toggleCrounCameraView() {
+    if (!this.isCrounSequenceActive) return;
+    this.isCrounCameraOn = !this.isCrounCameraOn;
+    this.renderer.setCrounCamera(this.isCrounCameraOn);
+    this.updateCrounViewButtonText();
+  }
+
+  private updateCrounViewButtonText() {
+    if (this.elBtnCrounView) {
+      this.elBtnCrounView.textContent = this.isCrounCameraOn
+        ? '👁️ 盤面視点へ (C)'
+        : '🎡 クルーン視点へ (C)';
+    }
+  }
+
+  public skipCrounChallenge() {
+    if (!this.isCrounSequenceActive) return;
+
+    if (this.crounIntroTimer !== null) {
+      clearTimeout(this.crounIntroTimer);
+      this.crounIntroTimer = null;
+    }
+
+    if (this.elBtnCrounSkip) {
+      this.elBtnCrounSkip.setAttribute('disabled', 'true');
+      this.elBtnCrounSkip.textContent = 'スキップ中...';
+    }
+
+    const type = this.physics.forceResolveCroun();
+    this.handleCrounResult(type, true);
   }
 
   private handleCrounLockIn(type: '50' | '100_tower' | 'jp', pocketIndex: number) {
@@ -298,12 +363,23 @@ export class GameManager {
     }
   }
 
-  private handleCrounResult(type: '50' | '100_tower' | 'jp') {
+  private handleCrounResult(type: '50' | '100_tower' | 'jp', isSkipped = false) {
+    if (this.crounIntroTimer !== null) {
+      clearTimeout(this.crounIntroTimer);
+      this.crounIntroTimer = null;
+    }
+    if (this.crounReturnTimer !== null) {
+      clearTimeout(this.crounReturnTimer);
+      this.crounReturnTimer = null;
+    }
+
     this.sound.playRouletteWin();
 
     if (type === 'jp') {
       const winJp = Math.floor(this.jackpotAmount);
-      this.elCrounStatus.textContent = `🌈 GRAND JACKPOT 獲得!! (${winJp}枚)`;
+      this.elCrounStatus.textContent = isSkipped
+        ? `🌈 GRAND JACKPOT 獲得!! (${winJp}枚) [即時確定]`
+        : `🌈 GRAND JACKPOT 獲得!! (${winJp}枚)`;
       this.sound.playGrandJackpot();
 
       // Launch Confetti safely
@@ -331,7 +407,9 @@ export class GameManager {
       this.credits += winJp;
       this.jackpotAmount = 300.0; // Reset JP
     } else if (type === '100_tower') {
-      this.elCrounStatus.textContent = '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!!';
+      this.elCrounStatus.textContent = isSkipped
+        ? '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!! [即時確定]'
+        : '🟨 100枚 ＋ 🏰 50枚メダルタワー召喚!!';
       this.credits += 100;
       this.physics.spawnMedalTower(0, -1.35);
       this.sound.playTowerCollapse();
@@ -339,7 +417,9 @@ export class GameManager {
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
       } catch (_) {}
     } else {
-      this.elCrounStatus.textContent = '🟦 50枚払い出し獲得!!';
+      this.elCrounStatus.textContent = isSkipped
+        ? '🟦 50枚払い出し獲得!! [即時確定]'
+        : '🟦 50枚払い出し獲得!!';
       this.credits += 50;
       for (let i = 0; i < 15; i++) {
         const rx = (Math.random() - 0.5) * 1.8;
@@ -347,20 +427,24 @@ export class GameManager {
       }
     }
 
-    // Return to main playfield after 3.8s
-    setTimeout(() => {
+    // Return to main playfield: 600ms if skipped, 1800ms otherwise (cut down from 3800ms)
+    const returnDelay = isSkipped ? 600 : 1800;
+
+    this.crounReturnTimer = window.setTimeout(() => {
+      this.crounReturnTimer = null;
       this.elCrounOverlay.classList.add('hidden');
       this.renderer.setCrounCamera(false);
       this.renderer.setWinningPocket(null);
+      this.isCrounCameraOn = false;
       this.updateHUD();
       this.isCrounSequenceActive = false;
 
       // Run queued challenge (e.g. JP slot hit while a croun was already rolling)
       const next = this.pendingCrounCauses.shift();
       if (next) {
-        setTimeout(() => this.triggerCrounChallenge(next), 800);
+        window.setTimeout(() => this.triggerCrounChallenge(next), 500);
       }
-    }, 3800);
+    }, returnDelay);
   }
 
   /**
@@ -394,12 +478,13 @@ export class GameManager {
     try {
       const roll = Math.random();
 
-      // Probabilities per spec (DOC-MP-EV-02):
-      // 💀 ハズレ (45%)
-      // 🪙 小当たり15枚 (25%) / 🏰 タワー召喚マス (5%) [合計30%]
-      // 🔮 ボール出現 (15%)
-      // 🔥 JPチャレンジ突入 (10%)
-      if (roll < 0.45) {
+      // Balanced arcade odds:
+      // 💀 ハズレ (48%)
+      // 🪙 小当たり15枚 (32%)
+      // 🏰 タワー召喚マス (6%)
+      // 🔮 ボール出現 (11%) - capped at 2 balls on field! Excess awards 25 coins bonus
+      // 🔥 JPチャレンジ突入 (3%) - rare arcade thrill
+      if (roll < 0.48) {
         // 💀 ハズレ
         this.setReelSymbols('💀', '💀', '💀');
         this.elRouletteMsg.textContent = '💀 ハズレ (フィーバー+1)';
@@ -409,8 +494,8 @@ export class GameManager {
             this.triggerFeverMode();
           }
         }
-      } else if (roll < 0.70) {
-        // 🪙 小当たり15枚
+      } else if (roll < 0.80) {
+        // 🪙 小当たり15枚 (32%)
         this.setReelSymbols('🪙', '🪙', '🪙');
         this.elRouletteMsg.textContent = '🪙 小当たり15枚！';
         this.sound.playRouletteWin();
@@ -418,27 +503,38 @@ export class GameManager {
         for (let i = 0; i < 6; i++) {
           this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 1.35, -1.45, true);
         }
-      } else if (roll < 0.75) {
-        // 🏰 タワー召喚マス (Spec Page 1: "ルーレットのタワー召喚マス")
+      } else if (roll < 0.86) {
+        // 🏰 タワー召喚マス (6%)
         this.setReelSymbols('🏰', '🏰', '🏰');
         this.elRouletteMsg.textContent = '🏰 タワー召喚マス当選！';
         this.sound.playTowerCollapse();
         this.physics.spawnMedalTower(0, -1.35);
         this.showAlert('🏰 TOWER SUMMON!', '中央に50枚メダルタワーを召喚！');
-      } else if (roll < 0.90) {
-        // 🔮 カラーボール出現 (15%)
-        this.setReelSymbols('🔮', '🔮', '🔮');
-        this.elRouletteMsg.textContent = '🔮 カラーボール落下！';
-        this.sound.playOrbDrop();
-        this.physics.spawnBall(0, 1.45, -1.4);
+      } else if (roll < 0.97) {
+        // 🔮 カラーボール出現 (11%)
+        // Cap to max 2 balls on the field simultaneously
+        if (this.physics.balls.size >= 2) {
+          this.setReelSymbols('🪙', '🪙', '🪙');
+          this.elRouletteMsg.textContent = '🪙 ボーナス25枚！(ボール満杯)';
+          this.sound.playRouletteWin();
+          this.credits += 25;
+          for (let i = 0; i < 10; i++) {
+            this.physics.spawnCoin((Math.random() - 0.5) * 1.5, 1.35, -1.45, true);
+          }
+        } else {
+          this.setReelSymbols('🔮', '🔮', '🔮');
+          this.elRouletteMsg.textContent = '🔮 カラーボール落下！';
+          this.sound.playOrbDrop();
+          this.physics.spawnBall(0, 1.45, -1.4);
+        }
       } else {
-        // 🔥 JPチャレンジ突入 (10%)
+        // 🔥 JPチャレンジ突入 (3%)
         this.setReelSymbols('🔥', '🔥', '🔥');
-        this.elRouletteMsg.textContent = '🔥 JPチャレンジ突入!!';
+        this.elRouletteMsg.textContent = '🔥 奇跡のJP直撃チャレンジ!!';
         this.sound.playRouletteWin();
-        setTimeout(() => {
-          this.triggerCrounChallenge('スロット当選！');
-        }, 1000);
+        window.setTimeout(() => {
+          this.triggerCrounChallenge('スロット直撃！');
+        }, 600);
       }
     } finally {
       this.isRouletteSpinning = false;
