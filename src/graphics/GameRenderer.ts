@@ -86,7 +86,7 @@ export class GameRenderer {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.38;
+    this.renderer.toneMappingExposure = 1.24;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -95,7 +95,7 @@ export class GameRenderer {
     pmrem.compileEquirectangularShader();
     const roomEnv = new RoomEnvironment();
     this.scene.environment = pmrem.fromScene(roomEnv).texture;
-    this.scene.environmentIntensity = 1.35;
+    this.scene.environmentIntensity = 1.05;
     roomEnv.dispose();
     pmrem.dispose();
 
@@ -114,11 +114,11 @@ export class GameRenderer {
 
   private setupLights() {
     // Warm ambient base
-    const ambient = new THREE.AmbientLight(0xfffaed, 1.1);
+    const ambient = new THREE.AmbientLight(0xfffaed, 0.95);
     this.scene.add(ambient);
 
     // Primary bright arcade overhead sunlight fixture: casts uniform brilliant illumination across lower deck & pusher
-    const dirLight = new THREE.DirectionalLight(0xfff5dd, 2.8);
+    const dirLight = new THREE.DirectionalLight(0xfff5dd, 2.2);
     dirLight.position.set(0, 9.0, 2.5);
     dirLight.target.position.set(0, 0.2, -0.65);
     dirLight.castShadow = true;
@@ -135,14 +135,14 @@ export class GameRenderer {
     this.scene.add(dirLight.target);
 
     // Front player camera fill light: illuminates coin top faces & front bevels directly toward camera
-    const playerLight = new THREE.DirectionalLight(0xffe6a3, 1.8);
+    const playerLight = new THREE.DirectionalLight(0xffe6a3, 1.2);
     playerLight.position.set(0, 5.0, 4.5);
     playerLight.target.position.set(0, 0.1, -0.6);
     this.scene.add(playerLight);
     this.scene.add(playerLight.target);
 
     // Golden spotlight highlight booster
-    const mainSpot = new THREE.SpotLight(0xffe070, 3.5);
+    const mainSpot = new THREE.SpotLight(0xffe070, 2.6);
     mainSpot.position.set(0, 7.5, 1.5);
     mainSpot.angle = Math.PI / 3.2;
     mainSpot.penumbra = 0.5;
@@ -150,11 +150,11 @@ export class GameRenderer {
     this.scene.add(mainSpot);
 
     // Neon accent edge rim lights
-    const blueRim = new THREE.PointLight(0x00d4ff, 3.0, 9);
+    const blueRim = new THREE.PointLight(0x00d4ff, 2.2, 9);
     blueRim.position.set(-2.9, 1.5, -0.4);
     this.scene.add(blueRim);
 
-    const magentaRim = new THREE.PointLight(0xff007f, 3.0, 9);
+    const magentaRim = new THREE.PointLight(0xff007f, 2.2, 9);
     magentaRim.position.set(2.9, 1.5, -0.4);
     this.scene.add(magentaRim);
 
@@ -320,12 +320,12 @@ export class GameRenderer {
     const coinGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.09, 24);
     const coinBump = this.createCoinBumpTexture();
     const coinMat = new THREE.MeshStandardMaterial({
-      color: 0xffdf40,      // Radiant brilliant Japanese arcade gold
-      metalness: 0.80,       // Balanced metallic reflectance with rich golden body color
-      roughness: 0.18,       // Polished mirror-sheen gold luster
-      emissive: 0x3a2806,    // Warm golden ambient self-luminance so stacked/shadowed coins stay bright
+      color: 0xffd700,      // Luxurious classic Japanese arcade gold
+      metalness: 0.82,       // Refined metallic reflectance with rich golden tone
+      roughness: 0.20,       // Polished golden sheen without blinding glare
+      emissive: 0x221804,    // Subtle warm golden shadow compensation
       bumpMap: coinBump,
-      bumpScale: 0.02,
+      bumpScale: 0.015,
     });
 
     this.coinInstancedMesh = new THREE.InstancedMesh(coinGeo, coinMat, this.maxCoins);
