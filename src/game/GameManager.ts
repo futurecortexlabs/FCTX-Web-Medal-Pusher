@@ -524,13 +524,13 @@ export class GameManager {
       const roll = Math.random();
 
       // Balanced arcade odds:
-      // 💀 ハズレ (48%)
-      // 🪙 小当たり15枚 (32%)
+      // 💀 ハズレ (51%)
+      // 🪙 小当たり15枚 (35%)
       // 🏰 タワー召喚マス (6%)
-      // 🔮 ボール出現 (11%) - capped at 2 balls on field! Excess awards 25 coins bonus
-      // 🔥 JPチャレンジ突入 (3%) - rare arcade thrill
-      if (roll < 0.48) {
-        // 💀 ハズレ
+      // 🔮 ボール出現 (5%) - 盤面最大1個（満杯時は25枚ボーナス）
+      // 🔥 JPチャレンジ突入 (3%) - レア直撃
+      if (roll < 0.51) {
+        // 💀 ハズレ (51%)
         this.setReelSymbols('💀', '💀', '💀');
         this.elRouletteMsg.textContent = '💀 ハズレ (フィーバー+1)';
         if (!this.isFeverActive) {
@@ -539,8 +539,8 @@ export class GameManager {
             this.triggerFeverMode();
           }
         }
-      } else if (roll < 0.80) {
-        // 🪙 小当たり15枚 (32%)
+      } else if (roll < 0.86) {
+        // 🪙 小当たり15枚 (35%)
         this.setReelSymbols('🪙', '🪙', '🪙');
         this.elRouletteMsg.textContent = '🪙 小当たり15枚！';
         this.sound.playRouletteWin();
@@ -548,7 +548,7 @@ export class GameManager {
         for (let i = 0; i < 6; i++) {
           this.physics.spawnCoin((Math.random() - 0.5) * 2.4, 1.35, -1.65, true);
         }
-      } else if (roll < 0.86) {
+      } else if (roll < 0.92) {
         // 🏰 タワー召喚マス (6%)
         this.setReelSymbols('🏰', '🏰', '🏰');
         this.elRouletteMsg.textContent = '🏰 タワー召喚マス当選！';
@@ -556,9 +556,8 @@ export class GameManager {
         this.physics.spawnMedalTower(0, -1.65);
         this.showAlert('🏰 TOWER SUMMON!', '中央に50枚メダルタワーを召喚！');
       } else if (roll < 0.97) {
-        // 🔮 カラーボール出現 (11%)
-        // Cap to max 2 balls on the field simultaneously
-        if (this.physics.balls.size >= 2) {
+        // 🔮 カラーボール出現 (5%) - 盤面最大1個に制限してレア感を創出
+        if (this.physics.balls.size >= 1) {
           this.setReelSymbols('🪙', '🪙', '🪙');
           this.elRouletteMsg.textContent = '🪙 ボーナス25枚！(ボール満杯)';
           this.sound.playRouletteWin();
