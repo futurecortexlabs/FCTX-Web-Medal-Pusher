@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { PhysicsWorld } from '../physics/PhysicsWorld';
 
 export class GameRenderer {
@@ -65,7 +66,7 @@ export class GameRenderer {
     this.canvas = canvas;
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x060814);
-    this.scene.fog = new THREE.FogExp2(0x060814, 0.04);
+    this.scene.fog = new THREE.FogExp2(0x060814, 0.012);
 
     const aspect = window.innerWidth / window.innerHeight;
     const initialFov = aspect < 0.75 ? Math.min(80, 55 * (0.75 / Math.max(aspect, 0.45))) : 55;
@@ -85,9 +86,18 @@ export class GameRenderer {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.25;
+    this.renderer.toneMappingExposure = 1.38;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    // Radiant studio environment for lustrous metallic reflections
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    pmrem.compileEquirectangularShader();
+    const roomEnv = new RoomEnvironment();
+    this.scene.environment = pmrem.fromScene(roomEnv).texture;
+    this.scene.environmentIntensity = 1.35;
+    roomEnv.dispose();
+    pmrem.dispose();
 
     this.setupLights();
     this.setupStaticDecorations();
@@ -103,26 +113,48 @@ export class GameRenderer {
   }
 
   private setupLights() {
-    // Ambient light
-    const ambient = new THREE.AmbientLight(0xffffff, 0.9);
+    // Warm ambient base
+    const ambient = new THREE.AmbientLight(0xfffaed, 1.1);
     this.scene.add(ambient);
 
-    // Main golden spotlight from above front onto pusher deck
-    const mainSpot = new THREE.SpotLight(0xffe28a, 2.8);
+    // Primary bright arcade overhead sunlight fixture: casts uniform brilliant illumination across lower deck & pusher
+    const dirLight = new THREE.DirectionalLight(0xfff5dd, 2.8);
+    dirLight.position.set(0, 9.0, 2.5);
+    dirLight.target.position.set(0, 0.2, -0.65);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 1;
+    dirLight.shadow.camera.far = 18;
+    dirLight.shadow.camera.left = -2.6;
+    dirLight.shadow.camera.right = 2.6;
+    dirLight.shadow.camera.top = 2.6;
+    dirLight.shadow.camera.bottom = -2.6;
+    dirLight.shadow.bias = -0.0004;
+    this.scene.add(dirLight);
+    this.scene.add(dirLight.target);
+
+    // Front player camera fill light: illuminates coin top faces & front bevels directly toward camera
+    const playerLight = new THREE.DirectionalLight(0xffe6a3, 1.8);
+    playerLight.position.set(0, 5.0, 4.5);
+    playerLight.target.position.set(0, 0.1, -0.6);
+    this.scene.add(playerLight);
+    this.scene.add(playerLight.target);
+
+    // Golden spotlight highlight booster
+    const mainSpot = new THREE.SpotLight(0xffe070, 3.5);
     mainSpot.position.set(0, 7.5, 1.5);
-    mainSpot.angle = Math.PI / 3.5;
-    mainSpot.penumbra = 0.4;
-    mainSpot.castShadow = true;
-    mainSpot.shadow.mapSize.width = 1024;
-    mainSpot.shadow.mapSize.height = 1024;
+    mainSpot.angle = Math.PI / 3.2;
+    mainSpot.penumbra = 0.5;
+    mainSpot.castShadow = false;
     this.scene.add(mainSpot);
 
     // Neon accent edge rim lights
-    const blueRim = new THREE.PointLight(0x00d4ff, 2.0, 8);
+    const blueRim = new THREE.PointLight(0x00d4ff, 3.0, 9);
     blueRim.position.set(-2.9, 1.5, -0.4);
     this.scene.add(blueRim);
 
-    const magentaRim = new THREE.PointLight(0xff007f, 2.0, 8);
+    const magentaRim = new THREE.PointLight(0xff007f, 3.0, 9);
     magentaRim.position.set(2.9, 1.5, -0.4);
     this.scene.add(magentaRim);
 
@@ -213,13 +245,87 @@ export class GameRenderer {
     this.scene.add(rightWall);
   }
 
+  private createCoinBumpTexture(): THREE.CanvasTexture {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
+
+    // Neutral gray background
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Coin face circular relief
+    // Outer raised rim
+    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(128, 128, 114, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Inner bevel groove
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#404040';
+    ctx.beginPath();
+    ctx.arc(128, 128, 102, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Beaded ring around inner perimeter (milling dots)
+    const dotCount = 36;
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < dotCount; i++) {
+      const angle = (i / dotCount) * Math.PI * 2;
+      const x = 128 + Math.cos(angle) * 92;
+      const y = 128 + Math.sin(angle) * 92;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Center star relief (★)
+    ctx.save();
+    ctx.translate(128, 128);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const outerAngle = (i * 72 - 90) * Math.PI / 180;
+      const innerAngle = (i * 72 + 36 - 90) * Math.PI / 180;
+      const ox = Math.cos(outerAngle) * 44;
+      const oy = Math.sin(outerAngle) * 44;
+      const ix = Math.cos(innerAngle) * 19;
+      const iy = Math.sin(innerAngle) * 19;
+      if (i === 0) ctx.moveTo(ox, oy);
+      else ctx.lineTo(ox, oy);
+      ctx.lineTo(ix, iy);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Vertical edge ridges along bands for cylinder side milling
+    ctx.fillStyle = '#ffffff';
+    for (let x = 0; x < 256; x += 8) {
+      ctx.fillRect(x, 0, 4, 30);
+      ctx.fillRect(x, 226, 4, 30);
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    return texture;
+  }
+
   private setupInstancedCoins() {
     // Thick substantial shiny gold coin geometry: radius 0.18, height 0.09!
     const coinGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.09, 24);
+    const coinBump = this.createCoinBumpTexture();
     const coinMat = new THREE.MeshStandardMaterial({
-      color: 0xffc800,
-      metalness: 0.92,
-      roughness: 0.16,
+      color: 0xffdf40,      // Radiant brilliant Japanese arcade gold
+      metalness: 0.80,       // Balanced metallic reflectance with rich golden body color
+      roughness: 0.18,       // Polished mirror-sheen gold luster
+      emissive: 0x3a2806,    // Warm golden ambient self-luminance so stacked/shadowed coins stay bright
+      bumpMap: coinBump,
+      bumpScale: 0.02,
     });
 
     this.coinInstancedMesh = new THREE.InstancedMesh(coinGeo, coinMat, this.maxCoins);
